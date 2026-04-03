@@ -383,7 +383,7 @@ module.exports = {
 				ctx.fillStyle = "#ffffff";
 				ctx.font = "bold 32px Arial";
 				ctx.textAlign = "left";
-				ctx.fillText("GOAT BANK LTD.", 44, 58);
+				ctx.fillText("SHI BANK LTD.", 44, 58);
 
 				// ── VISA logo (top-right, italic serif) ──
 				ctx.fillStyle = "#ffffff";
