@@ -143,8 +143,8 @@ module.exports = {
   config: {
     name: "bank",
     aliases: ["b"],
-    version: "1.0",
-    author: "𝐙ɪsᴀɴ",
+    version: "1.1", // ভার্সন আপডেট করা হয়েছে
+    author: "𝐙ɪsᴀ𝐍",
     countDown: 5,
     role: 0,
     description: {
@@ -215,6 +215,7 @@ module.exports = {
     const { senderID } = event;
     const action = args[0]?.toLowerCase();
 
+    // Get or create economy data (persisted under data.economy)
     let economyData = await usersData.get(senderID, "data.economy");
     if (!economyData) {
       economyData = {
@@ -241,9 +242,11 @@ module.exports = {
           return message.reply(getLang("insufficientFunds", userMoney));
         }
 
+        // Update balances
         await usersData.set(senderID, { money: userMoney - amount });
         await usersData.set(senderID, economyData.bankBalance + amount, "data.economy.bankBalance");
 
+        // Add transaction
         const depositTransaction = {
           type: "deposit",
           amount: amount,
@@ -255,6 +258,7 @@ module.exports = {
         if (economyData.transactions.length > 20) economyData.transactions.pop();
         await usersData.set(senderID, economyData.transactions, "data.economy.transactions");
 
+        // Render and send deposit receipt image
         try {
           const holderName = await usersData.getName(senderID) || senderID;
           const buf = await renderTxnReceipt({
@@ -286,9 +290,11 @@ module.exports = {
           return message.reply(getLang("insufficientBankFunds", economyData.bankBalance));
         }
 
+        // Update balances
         await usersData.set(senderID, { money: userMoney + amount });
         await usersData.set(senderID, economyData.bankBalance - amount, "data.economy.bankBalance");
 
+        // Add transaction
         const withdrawTransaction = {
           type: "withdraw",
           amount: amount,
@@ -300,6 +306,7 @@ module.exports = {
         if (economyData.transactions.length > 20) economyData.transactions.pop();
         await usersData.set(senderID, economyData.transactions, "data.economy.transactions");
 
+        // Render and send withdrawal receipt image
         try {
           const holderName = await usersData.getName(senderID) || senderID;
           const buf = await renderTxnReceipt({
@@ -345,14 +352,13 @@ module.exports = {
           ctx.closePath();
         };
 
-        // ── 🎨 PREMIUM RANDOM GRADIENTS (সবগুলো ডার্ক হওয়ায় লেখা স্পষ্ট থাকবে) ──
+        // ── 🎨 PREMIUM RANDOM GRADIENTS (সবগুলো ডার্ক হওয়ায় লেখা স্পষ্ট থাকবে) ──
         const gradients = [
-          ["#1a1a5e", "#2a1b6e", "#1e1060"], // ১. ডার্ক নেভি ও পার্পল (অরিজিনাল)
-          ["#041c10", "#0b3d22", "#020f09"], // ২. ডার্ক এমারেল্ড (অভিজাত জলপাই ভাইব)
-          ["#1f0524", "#3d0b47", "#120315"], // ৩. মিডনাইট পার্পল / অ্যামিথিস্ট
-          ["#141414", "#292929", "#0a0a0a"], // ৪. কার্বন ম্যাট ব্ল্যাক
-          ["#30030c", "#5c0b1b", "#1a0105"], // ৫. বারগান্ডি / রুবি রেড
-          ["#0a1d33", "#13355c", "#05111f"]  // ৬. ওশেন ব্লু
+          ["#141414", "#292929", "#0a0a0a"], // ১. কার্বন ম্যাট ব্ল্যাক (Carbon Black)
+          ["#30030c", "#5c0b1b", "#1a0105"], // ২. বারগান্ডি ওয়াইন / রুবি রেড (Burgundy)
+          ["#0a1d33", "#13355c", "#05111f"], // ৩. ডার্ক ওশান ব্লু (Ocean Blue)
+          ["#041c10", "#0b3d22", "#020f09"], // ৪. ডার্ক এমারেল্ড গ্রিন (Emerald Green - জলপাই শেড)
+          ["#4d0012", "#a6113b", "#29000a"]  // ৫. 💖 মেটালিক রোজ গোল্ড / পিঙ্ক (Rose Gold) - অনুরোধ অনুযায়ী
         ];
         
         // র্যান্ডমলি একটি প্যালেট সিলেক্ট করা
@@ -366,7 +372,7 @@ module.exports = {
         roundRect(0, 0, W, H, 30);
         ctx.fill();
 
-        // ── Decorative arc lines (সাদা অপাসিটি দিয়ে যা সব কালারেই ফুটবে) ──
+        // ── Decorative arc lines (সাদা অপাসিটি দিয়ে যা সব কালারেই ফুটবে) ──
         ctx.save();
         for (let i = 0; i < 12; i++) {
           ctx.strokeStyle = `rgba(255,255,255,${(0.03 + i * 0.005).toFixed(3)})`;
@@ -390,14 +396,14 @@ module.exports = {
         ctx.textAlign = "left";
         ctx.fillText("SHI BANK LTD.", 44, 58);
 
-        // ── VISA logo ──
+        // ── VISA logo (top-right, italic serif) ──
         ctx.fillStyle = "#ffffff";
         ctx.font = "bold italic 52px serif";
         ctx.textAlign = "right";
         ctx.fillText("VISA", W - 44, 64);
         ctx.textAlign = "left";
 
-        // ── Profile picture ──
+        // ── Profile picture (circular, left-center) ──
         const cx = 124, cy = 210, cr = 68;
         try {
           const avatarUrl = await usersData.getAvatarUrl(senderID);
@@ -407,15 +413,16 @@ module.exports = {
           ctx.arc(cx, cy, cr, 0, Math.PI * 2);
           ctx.closePath();
           ctx.clip();
-          ctx.drawImage(avatar, cx - cr, cy - cy, cr * 2, cr * 2);
+          ctx.drawImage(avatar, cx - cr, cy - cr, cr * 2, cr * 2);
           ctx.restore();
         } catch (e) {
+          // Placeholder circle if avatar load fails
           ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
           ctx.beginPath();
           ctx.arc(cx, cy, cr, 0, Math.PI * 2);
           ctx.fill();
         }
-        
+        // Cyan ring border around avatar (ডার্ক ব্যাকগ্রাউন্ডে খুব ফুটে ওঠে)
         ctx.strokeStyle = "#00e5ff";
         ctx.lineWidth = 4;
         ctx.beginPath();
@@ -428,7 +435,7 @@ module.exports = {
         ctx.textAlign = "left";
         ctx.fillText("AVAILABLE BALANCE", 44, 318);
 
-        // ── Balance amount ──
+        // ── Balance amount (large, cyan) ──
         const fmtBal = (num) => {
           const units = ["", "K", "M", "B", "T", "Q"];
           let unit = 0, n = Number(num);
@@ -439,20 +446,20 @@ module.exports = {
         ctx.font = "bold 72px Arial";
         ctx.fillText(`$${fmtBal(bankBal)}`, 44, 402);
 
-        // ── Card number ──
+        // ── Card number (4 groups from UID digits) ──
         const uid16 = String(senderID).replace(/\D/g, "").padStart(16, "0").slice(-16);
         const cardNum = `${uid16.slice(0,4)}  ${uid16.slice(4,8)}  ${uid16.slice(8,12)}  ${uid16.slice(12,16)}`;
         ctx.fillStyle = "rgba(255,255,255,0.85)";
         ctx.font = "26px \"Courier New\", monospace";
         ctx.fillText(cardNum, 44, 474);
 
-        // ── Cardholder name ──
+        // ── Cardholder name (bold, bottom-left) ──
         const holderName = (await usersData.getName(senderID) || "CARD HOLDER").toUpperCase();
         ctx.fillStyle = "#ffffff";
         ctx.font = "bold 24px Arial";
         ctx.fillText(holderName, 44, 526);
 
-        // ── VALID THRU ──
+        // ── VALID THRU (bottom-right) ──
         const now = new Date();
         const expMM = String(now.getMonth() + 1).padStart(2, "0");
         const expYY = String(now.getFullYear() + 4).slice(-2);
@@ -462,6 +469,7 @@ module.exports = {
         ctx.fillText(`VALID THRU: ${expMM}/${expYY}`, W - 44, 526);
         ctx.textAlign = "left";
 
+        // ── Save & send ──
         const outPath = path.join(__dirname, "cache", `bank_visa_${senderID}.png`);
         await fs.ensureDir(path.dirname(outPath));
         await fs.writeFile(outPath, canvas.toBuffer("image/png"));
@@ -486,6 +494,7 @@ module.exports = {
           return message.reply(getLang("insufficientFunds", userMoney));
         }
 
+        // Get target user
         const targetID = Object.keys(event.mentions)[0];
         if (!targetID) {
           return message.reply(getLang("userNotFound"));
@@ -495,14 +504,23 @@ module.exports = {
           return message.reply(getLang("cannotTransferSelf"));
         }
 
+        // Get target user data
         const targetUserData = await usersData.get(targetID);
         if (!targetUserData) {
           return message.reply(getLang("userNotFound"));
         }
 
-        await usersData.set(senderID, { money: userMoney - amount });
-        await usersData.set(targetID, { money: targetUserData.money + amount });
+        // Update sender balance
+        await usersData.set(senderID, {
+          money: userMoney - amount
+        });
 
+        // Update receiver balance
+        await usersData.set(targetID, {
+          money: targetUserData.money + amount
+        });
+
+        // Add transactions for both users
         const transferTransaction = {
           type: "transfer_sent",
           amount: amount,
@@ -519,10 +537,12 @@ module.exports = {
           relatedUser: senderID
         };
 
+        // Update sender transactions
         economyData.transactions.unshift(transferTransaction);
         if (economyData.transactions.length > 20) economyData.transactions.pop();
         await usersData.set(senderID, economyData.transactions, "data.economy.transactions");
 
+        // Update receiver transactions
         let targetEconomyData = await usersData.get(targetID, "data.economy");
         if (!targetEconomyData) {
           targetEconomyData = {
@@ -534,11 +554,8 @@ module.exports = {
             investmentLevel: 1
           };
         }
-        
         targetEconomyData.transactions.unshift(receiveTransaction);
-        if (targetEconomyData.transactions.length > 20) {
-            targetEconomyData.transactions.pop();
-        }
+        if (targetEconomyData.transactions.length > 20) targetEconomyData.transactions.pop();
         await usersData.set(targetID, targetEconomyData.transactions, "data.economy.transactions");
 
         message.reply(getLang("transferSuccess", amount, event.mentions[targetID]));
