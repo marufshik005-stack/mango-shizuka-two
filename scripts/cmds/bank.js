@@ -330,218 +330,136 @@ module.exports = {
 
 			case "balance":
 			case "b": {
-				const bankBalance = economyData.bankBalance;
-				const walletBalance = userMoney;
-				const bankLevel = economyData.bankLevel;
-				const nextLevelAmount = bankLevel * 10000;
-				const dailyInterest = Math.floor(bankBalance * 0.01);
+				const bankBal = economyData.bankBalance;
 
-				// Create Shizuka-themed digital receipt image
-				const W = 900, H = 1200;
+				// ── Visa card dimensions (credit-card ratio ~1.586) ──
+				const W = 900, H = 567;
 				const canvas = createCanvas(W, H);
 				const ctx = canvas.getContext("2d");
 
-				// Background image (Shizuka themed)
-				try {
-					const bg = await loadImage("https://i.postimg.cc/ryHfwpLJ/ezgif-22bfaf4827830f.jpg");
-					ctx.drawImage(bg, 0, 0, W, H);
-				}
-				catch (e) {
-					// fallback to solid background if image fails
-					ctx.fillStyle = "#ffd6e7";
-					ctx.fillRect(0, 0, W, H);
-				}
-				// Soft pink overlay for theme consistency
-				ctx.fillStyle = "rgba(255, 214, 231, 0.85)";
-				ctx.fillRect(0, 0, W, H);
-				// hearts pattern
-				ctx.globalAlpha = 0.15;
-				ctx.fillStyle = "#ff5ca8";
-				for (let i = 0; i < 40; i++) {
-					const x = Math.random() * W;
-					const y = Math.random() * H;
-					const r = 10 + Math.random() * 20;
+				// Helper: draw rounded-rect path
+				const roundRect = (x, y, w, h, r) => {
 					ctx.beginPath();
-					ctx.moveTo(x, y);
-					ctx.bezierCurveTo(x - r, y - r, x - 2 * r, y + r, x, y + 2 * r);
-					ctx.bezierCurveTo(x + 2 * r, y + r, x + r, y - r, x, y);
-					ctx.fill();
-				}
-				ctx.globalAlpha = 1;
+					ctx.moveTo(x + r, y);
+					ctx.lineTo(x + w - r, y);
+					ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+					ctx.lineTo(x + w, y + h - r);
+					ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+					ctx.lineTo(x + r, y + h);
+					ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+					ctx.lineTo(x, y + r);
+					ctx.quadraticCurveTo(x, y, x + r, y);
+					ctx.closePath();
+				};
 
-				// Receipt card with drop shadow
-				const cardX = 60, cardY = 80, cardW = W - 120, cardH = H - 160, radius = 26;
-				ctx.save();
-				ctx.shadowColor = "rgba(0,0,0,0.15)";
-				ctx.shadowBlur = 24;
-				ctx.shadowOffsetY = 12;
-				ctx.fillStyle = "#ffffff";
-				ctx.beginPath();
-				ctx.moveTo(cardX + radius, cardY);
-				ctx.lineTo(cardX + cardW - radius, cardY);
-				ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + radius);
-				ctx.lineTo(cardX + cardW, cardY + cardH - radius);
-				ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - radius, cardY + cardH);
-				ctx.lineTo(cardX + radius, cardY + cardH);
-				ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - radius);
-				ctx.lineTo(cardX, cardY + radius);
-				ctx.quadraticCurveTo(cardX, cardY, cardX + radius, cardY);
+				// ── Background gradient (dark navy → deep purple) ──
+				const grad = ctx.createLinearGradient(0, 0, W, H);
+				grad.addColorStop(0,   "#1a1a5e");
+				grad.addColorStop(0.5, "#2a1b6e");
+				grad.addColorStop(1,   "#1e1060");
+				ctx.fillStyle = grad;
+				roundRect(0, 0, W, H, 30);
 				ctx.fill();
+
+				// ── Decorative arc lines (right-side waves) ──
+				ctx.save();
+				for (let i = 0; i < 12; i++) {
+					ctx.strokeStyle = `rgba(120,140,255,${(0.06 + i * 0.01).toFixed(2)})`;
+					ctx.lineWidth = 1.5;
+					ctx.beginPath();
+					ctx.arc(W + 60, H / 2, 180 + i * 45, Math.PI * 0.65, Math.PI * 1.35);
+					ctx.stroke();
+				}
+				for (let i = 0; i < 8; i++) {
+					ctx.strokeStyle = `rgba(120,140,255,${(0.04 + i * 0.008).toFixed(3)})`;
+					ctx.lineWidth = 1;
+					ctx.beginPath();
+					ctx.arc(W - 80, H + 20, 160 + i * 50, Math.PI * 1.05, Math.PI * 1.75);
+					ctx.stroke();
+				}
 				ctx.restore();
 
-				// Fine border for realism
-				ctx.strokeStyle = "#e9e3e6";
-				ctx.lineWidth = 2;
-				ctx.beginPath();
-				ctx.moveTo(cardX + radius, cardY);
-				ctx.lineTo(cardX + cardW - radius, cardY);
-				ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + radius);
-				ctx.lineTo(cardX + cardW, cardY + cardH - radius);
-				ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - radius, cardY + cardH);
-				ctx.lineTo(cardX + radius, cardY + cardH);
-				ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - radius);
-				ctx.lineTo(cardX, cardY + radius);
-				ctx.quadraticCurveTo(cardX, cardY, cardX + radius, cardY);
-				ctx.stroke();
-
-				// Watermark inside card (low opacity)
-				try {
-					const mark = await loadImage("https://i.postimg.cc/288zFmcg/shizuka-photo-5233.jpg");
-					ctx.save();
-					ctx.globalAlpha = 0.08;
-					const mw = cardW * 0.6;
-					const mh = mw * (mark.height / mark.width);
-					const mx = cardX + (cardW - mw) / 2;
-					const my = cardY + (cardH - mh) / 2;
-					ctx.drawImage(mark, mx, my, mw, mh);
-					ctx.restore();
-				}
-				catch (e) {}
-
-				// Header ribbon
-				ctx.fillStyle = "#ff3f93";
-				ctx.fillRect(cardX, cardY + 24, cardW, 64);
+				// ── GOAT BANK LTD. (top-left) ──
 				ctx.fillStyle = "#ffffff";
-				ctx.font = "bold 40px Arial";
+				ctx.font = "bold 32px Arial";
 				ctx.textAlign = "left";
-				ctx.fillText("Shizuka Bank", cardX + 36, cardY + 68);
-				ctx.textAlign = "right";
-				ctx.font = "20px Arial";
-				ctx.fillText(moment().format("YYYY-MM-DD HH:mm:ss"), cardX + cardW - 24, cardY + 66);
+				ctx.fillText("GOAT BANK LTD.", 44, 58);
 
-				// Receipt meta (ID, Branch)
-				const receiptId = "SB-" + Date.now().toString(36).toUpperCase().slice(-8);
-				const branch = "Branch: Tokyo-01";
+				// ── VISA logo (top-right, italic serif) ──
+				ctx.fillStyle = "#ffffff";
+				ctx.font = "bold italic 52px serif";
+				ctx.textAlign = "right";
+				ctx.fillText("VISA", W - 44, 64);
 				ctx.textAlign = "left";
-				ctx.fillStyle = "#999";
+
+				// ── Profile picture (circular, left-center) ──
+				const cx = 124, cy = 210, cr = 68;
+				try {
+					const avatarUrl = await usersData.getAvatarUrl(senderID);
+					const avatar = await loadImage(avatarUrl);
+					ctx.save();
+					ctx.beginPath();
+					ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+					ctx.closePath();
+					ctx.clip();
+					ctx.drawImage(avatar, cx - cr, cy - cr, cr * 2, cr * 2);
+					ctx.restore();
+				} catch (e) {
+					// Placeholder circle if avatar load fails
+					ctx.fillStyle = "#2a2a7a";
+					ctx.beginPath();
+					ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+					ctx.fill();
+				}
+				// Cyan ring border around avatar
+				ctx.strokeStyle = "#00e5ff";
+				ctx.lineWidth = 4;
+				ctx.beginPath();
+				ctx.arc(cx, cy, cr + 3, 0, Math.PI * 2);
+				ctx.stroke();
+
+				// ── AVAILABLE BALANCE label ──
+				ctx.fillStyle = "rgba(180,210,255,0.8)";
 				ctx.font = "18px Arial";
-				ctx.fillText(`Receipt: ${receiptId}`, cardX + 36, cardY + 120);
-				ctx.fillText(branch, cardX + 36, cardY + 144);
-
-				// Optional photo (use replied image if exists)
-				try {
-					const replyAttach = event.messageReply?.attachments?.[0];
-					const url = replyAttach?.url;
-					if (url) {
-						const img = await loadImage(url);
-						const imgSize = 260;
-						ctx.save();
-						ctx.beginPath();
-						ctx.arc(W / 2, cardY + 260, imgSize / 2, 0, Math.PI * 2);
-						ctx.closePath();
-						ctx.clip();
-						ctx.drawImage(img, W / 2 - imgSize / 2, cardY + 260 - imgSize / 2, imgSize, imgSize);
-						ctx.restore();
-					}
-				}
-				catch (e) { }
-
-				// Perforation line
-				ctx.setLineDash([10, 10]);
-				ctx.strokeStyle = "#ead1dd";
-				ctx.lineWidth = 2;
-				ctx.beginPath();
-				ctx.moveTo(cardX + 24, cardY + 170);
-				ctx.lineTo(cardX + cardW - 24, cardY + 170);
-				ctx.stroke();
-				ctx.setLineDash([]);
-
-				// Info lines
-				const startY = cardY + 360;
-				const lineH = 52;
 				ctx.textAlign = "left";
-				ctx.fillStyle = "#111";
-				ctx.font = "bold 28px Arial";
-				ctx.fillText("Account Holder", cardX + 60, startY);
-				ctx.fillText("Account ID", cardX + 60, startY + lineH);
-				ctx.fillText("Bank Balance", cardX + 60, startY + lineH * 2);
-				ctx.fillText("Bank Level", cardX + 60, startY + lineH * 3);
-				ctx.fillText("Next Level Need", cardX + 60, startY + lineH * 4);
-				ctx.fillText("Daily Interest", cardX + 60, startY + lineH * 5);
+				ctx.fillText("AVAILABLE BALANCE", 44, 318);
 
+				// ── Balance amount (large, cyan) ──
+				const fmtBal = (num) => {
+					const units = ["", "K", "M", "B", "T", "Q"];
+					let unit = 0, n = Number(num);
+					while (n >= 1000 && unit < units.length - 1) { n /= 1000; unit++; }
+					return `${n.toFixed(2)}${units[unit]}`;
+				};
+				ctx.fillStyle = "#00e5ff";
+				ctx.font = "bold 72px Arial";
+				ctx.fillText(`$${fmtBal(bankBal)}`, 44, 402);
+
+				// ── Card number (4 groups from UID digits) ──
+				const uid16 = String(senderID).replace(/\D/g, "").padStart(16, "0").slice(-16);
+				const cardNum = `${uid16.slice(0,4)}  ${uid16.slice(4,8)}  ${uid16.slice(8,12)}  ${uid16.slice(12,16)}`;
+				ctx.fillStyle = "rgba(210,225,255,0.85)";
+				ctx.font = "26px \"Courier New\", monospace";
+				ctx.fillText(cardNum, 44, 474);
+
+				// ── Cardholder name (bold, bottom-left) ──
+				const holderName = (await usersData.getName(senderID) || "CARD HOLDER").toUpperCase();
+				ctx.fillStyle = "#ffffff";
+				ctx.font = "bold 24px Arial";
+				ctx.fillText(holderName, 44, 526);
+
+				// ── VALID THRU (bottom-right) ──
+				const now = new Date();
+				const expMM = String(now.getMonth() + 1).padStart(2, "0");
+				const expYY = String(now.getFullYear() + 4).slice(-2);
+				ctx.fillStyle = "rgba(200,215,255,0.75)";
+				ctx.font = "17px Arial";
 				ctx.textAlign = "right";
-				ctx.fillStyle = "#444";
-				ctx.font = "24px Arial";
-				const holderName = await usersData.getName(senderID) || senderID;
-				ctx.fillText(holderName, cardX + cardW - 60, startY);
-				ctx.fillText(String(senderID), cardX + cardW - 60, startY + lineH);
-				const fmt = n => n.toLocaleString("en-US");
-				ctx.fillText(`$${fmt(bankBalance)}`, cardX + cardW - 60, startY + lineH * 2);
-				ctx.fillText(`#${bankLevel}`, cardX + cardW - 60, startY + lineH * 3);
-				ctx.fillText(`$${fmt(nextLevelAmount)}`, cardX + cardW - 60, startY + lineH * 4);
-				ctx.fillText(`$${fmt(dailyInterest)}`, cardX + cardW - 60, startY + lineH * 5);
-
-				// Signature line for realism
+				ctx.fillText(`VALID THRU: ${expMM}/${expYY}`, W - 44, 526);
 				ctx.textAlign = "left";
-				ctx.strokeStyle = "#e5d7dc";
-				ctx.lineWidth = 1.5;
-				ctx.beginPath();
-				ctx.moveTo(cardX + 60, cardY + cardH - 170);
-				ctx.lineTo(cardX + 300, cardY + cardH - 170);
-				ctx.stroke();
-				ctx.fillStyle = "#a38b95";
-				ctx.font = "16px Arial";
-				ctx.fillText("Authorized Signature", cardX + 60, cardY + cardH - 148);
 
-				// QR code (account)
-				try {
-					const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent("UID:" + senderID + "|REC:" + receiptId)}`;
-					const qr = await loadImage(qrUrl);
-					ctx.drawImage(qr, cardX + cardW - 60 - 140, cardY + 190, 140, 140);
-				} catch (e) {}
-
-				// Barcode simulation
-				const barY = cardY + cardH - 120;
-				let x = cardX + 60;
-				for (let i = 0; i < 80; i++) {
-					const w = Math.random() > 0.5 ? 3 : 1;
-					const h = 60 + Math.random() * 20;
-					ctx.fillStyle = i % 2 === 0 ? "#333" : "#777";
-					ctx.fillRect(x, barY + (80 - h), w, h);
-					x += w + 2;
-				}
-
-				// Stamp
-				ctx.beginPath();
-				ctx.arc(cardX + 140, barY + 40, 34, 0, Math.PI * 2);
-				ctx.fillStyle = "rgba(255,63,147,0.15)";
-				ctx.fill();
-				ctx.strokeStyle = "#ff3f93";
-				ctx.lineWidth = 3;
-				ctx.stroke();
-				ctx.fillStyle = "#ff3f93";
-				ctx.font = "bold 16px Arial";
-				ctx.textAlign = "center";
-				ctx.fillText("SHIZUKA", cardX + 140, barY + 44);
-
-				// Footer note
-				ctx.textAlign = "center";
-				ctx.fillStyle = "#ff3f93";
-				ctx.font = "italic 22px Arial";
-				ctx.fillText("Thank you for banking with Shizuka Bank", W / 2, cardY + cardH - 40);
-
-				// Send attachment
-				const outPath = path.join(__dirname, "cache", `bank_receipt_${senderID}.png`);
+				// ── Save & send ──
+				const outPath = path.join(__dirname, "cache", `bank_visa_${senderID}.png`);
 				await fs.ensureDir(path.dirname(outPath));
 				await fs.writeFile(outPath, canvas.toBuffer("image/png"));
 				await message.reply({ attachment: fs.createReadStream(outPath) });
