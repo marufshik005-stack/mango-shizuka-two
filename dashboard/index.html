@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌸 Shizuka Bot - Advanced Dashboard 🌸</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-pink: #ec4899;
+            --secondary-pink: #f472b6;
+            --light-pink: #f9a8d4;
+            --dark-pink: #be185d;
+            --blue-accent: #38bdf8;
+            --purple-accent: #8b5cf6;
+            --text-light: rgba(255, 255, 255, 0.9);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: 
+                linear-gradient(rgba(26, 26, 46, 0.4), rgba(83, 52, 131, 0.5)),
+                url('/images/hearts-background.jpg') center/cover fixed,
+                linear-gradient(135deg, #1a1a2e 0%, #16213e 30%, #0f3460 70%, #533483 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: var(--text-light);
+        }
+
+        /* Animated Background */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        .bg-character {
+            position: absolute;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: blur(1px);
+            animation: floatCharacter 8s ease-in-out infinite;
+        }
+
+        .bg-character:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            right: 10%;
+            animation-delay: 0s;
+        }
+
+        .bg-character:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            bottom: 20%;
+            left: 15%;
+            animation-delay: -2s;
+        }
+
+        .bg-character:nth-child(3) {
+            width: 250px;
+            height: 250px;
+            top: 50%;
+            left: 5%;
+            animation-delay: -4s;
+        }
+
+        @keyframes floatCharacter {
+            0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+            25% { transform: translateY(-20px) rotate(2deg) scale(1.05); }
+            50% { transform: translateY(-10px) rotate(-1deg) scale(0.95); }
+            75% { transform: translateY(-30px) rotate(1deg) scale(1.02); }
+        }
+
+        /* Floating Hearts Enhanced */
+        .hearts-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 25px;
+            color: var(--secondary-pink);
+            animation: heartFloat 8s infinite ease-in-out;
+            filter: drop-shadow(0 0 10px var(--secondary-pink));
+        }
+
+        .heart::after {
+            content: '✨';
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            font-size: 12px;
+            color: var(--blue-accent);
+            animation: sparkle 2s infinite;
+        }
+
+        @keyframes heartFloat {
+            0% { 
+                transform: translateY(100vh) rotate(0deg) scale(0.5); 
+                opacity: 0; 
+            }
+            10% { opacity: 1; }
+            90% { opacity: 0.8; }
+            100% { 
+                transform: translateY(-20vh) rotate(360deg) scale(1.2); 
+                opacity: 0; 
+            }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Main Container */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            background: 
+                linear-gradient(rgba(244, 114, 182, 0.1), rgba(139, 92, 246, 0.1)),
+                linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4));
+        }
+
+        .hero-character {
+            position: absolute;
+            right: 10%;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 400px;
+            height: 500px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            opacity: 0.8;
+            animation: bounceInOut 6s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(244, 114, 182, 0.5));
+        }
+
+        @keyframes bounceInOut {
+            0%, 100% { transform: translateY(-50%) scale(1) rotate(0deg); }
+            25% { transform: translateY(-55%) scale(1.05) rotate(-2deg); }
+            50% { transform: translateY(-45%) scale(0.98) rotate(1deg); }
+            75% { transform: translateY(-52%) scale(1.02) rotate(-1deg); }
+        }
+
+        .hero-content {
+            z-index: 5;
+            max-width: 800px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(244, 114, 182, 0.1));
+            border-radius: 30px;
+            border: 1px solid rgba(255, 182, 193, 0.3);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(244, 114, 182, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: slideInUp 1s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .hero-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--primary-pink), var(--blue-accent), var(--purple-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { filter: drop-shadow(0 0 10px var(--primary-pink)); }
+            to { filter: drop-shadow(0 0 25px var(--blue-accent)); }
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: fadeIn 1.5s ease-out 0.5s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 0.9; transform: translateY(0); }
+        }
+
+        /* Navigation */
+        .nav-section {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            background: rgba(26, 26, 46, 0.8);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, var(--primary-pink), var(--purple-accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            animation: logoPulse 2s infinite;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px var(--primary-pink); }
+            50% { transform: scale(1.1); box-shadow: 0 0 30px var(--blue-accent); }
+        }
+
+        .nav-items {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-item {
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
+            transform: translateY(-2px);
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .section {
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            background: linear-gradient(45deg, var(--primary-pink), var(--blue-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(244, 114, 182, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px) rotateX(10deg);
+            box-shadow: 0 20px 40px rgba(244, 114, 182, 0.3);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+            animation: shimmer 1.5s ease-in-out;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+            background: linear-gradient(45deg, var(--primary-pink), var(--purple-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-pink);
+        }
+
+        .stat-label {
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .control-btn {
+            padding: 1.2rem 2rem;
+            border: none;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.5s;
+            transform: translate(-50%, -50%);
+        }
+
+        .control-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-start { background: linear-gradient(45deg, #10b981, #059669); }
+        .btn-stop { background: linear-gradient(45deg, #ef4444, #dc2626); }
+        .btn-restart { background: linear-gradient(45deg, #f59e0b, #d97706); }
+        .btn-status { background: linear-gradient(45deg, var(--blue-accent), #0284c7); }
+
+        /* Features Section */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(244, 114, 182, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+            animation: featureFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes featureFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--secondary-pink);
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            margin: 0.5rem;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: statusPulse 2s infinite;
+        }
+
+        .status-online { background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .status-offline { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+        .status-warning { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .hero-character { display: none; }
+            .nav-container { flex-direction: column; gap: 1rem; }
+            .nav-items { flex-wrap: wrap; justify-content: center; }
+            .dashboard-content { padding: 2rem 1rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .control-buttons { grid-template-columns: 1fr; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); }
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(45deg, var(--primary-pink), var(--purple-accent));
+            border-radius: 5px;
+        }
+
+        /* Notification Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: white;
+            z-index: 1000;
+            animation: toastSlideIn 0.3s ease;
+        }
+
+        @keyframes toastSlideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Hearts Background Enhancements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(244, 114, 182, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(255, 182, 193, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Additional sparkle effect to complement the hearts background */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 15% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 30%),
+                radial-gradient(circle at 85% 30%, rgba(255, 255, 255, 0.02) 0%, transparent 40%),
+                radial-gradient(circle at 60% 90%, rgba(244, 114, 182, 0.04) 0%, transparent 25%);
+            pointer-events: none;
+            z-index: 0;
+            animation: sparkle 8s ease-in-out infinite alternate;
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* Ensure main content is above background effects */
+        .main-container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Enhanced navigation logo styling */
+        .nav-logo-icon {
+            box-shadow: 0 0 20px rgba(244, 114, 182, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-logo-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(244, 114, 182, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Characters with Shizuka Elements -->
+    <div class="background-container">
+        <!-- Subtle floating logo elements -->
+        <div class="bg-character" style="background-image: url('/images/new-logo.jpg'); opacity: 0.08;"></div>
+        <div class="bg-character" style="background-image: url('/images/new-logo.jpg'); opacity: 0.06;"></div>
+        <div class="bg-character" style="background-image: url('/images/new-logo.jpg'); opacity: 0.05;"></div>
+    </div>
+
+    <!-- Floating Hearts Animation -->
+    <div class="hearts-container" id="heartsContainer"></div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-character" style="background-image: url('/images/new-logo.jpg'); filter: drop-shadow(0 0 30px rgba(244, 114, 182, 0.5));"></div>
+            <div class="hero-content">
+                <h1 class="hero-title">🌸 Shizuka Bot 🌸</h1>
+                <p class="hero-subtitle">Advanced AI-Powered Dashboard with Magical Animations</p>
+                <div class="status-indicator">
+                    <div class="status-dot status-online" id="mainStatusDot"></div>
+                    <span id="mainStatusText">System Online</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <nav class="nav-section">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <div class="nav-logo-icon" style="background-image: url('/images/new-logo.jpg'); background-size: cover; background-position: center; border: 2px solid var(--secondary-pink);">
+                        <!-- Shizuka profile image -->
+                    </div>
+                    <span style="font-weight: 600;">Shizuka Dashboard</span>
+                </div>
+                <div class="nav-items">
+                    <div class="nav-item" onclick="scrollToSection('stats')">
+                        <i class="fas fa-chart-bar"></i> Stats
+                    </div>
+                    <div class="nav-item" onclick="scrollToSection('controls')">
+                        <i class="fas fa-cogs"></i> Controls
+                    </div>
+                    <div class="nav-item" onclick="scrollToSection('controls')">
+                        <i class="fas fa-cookie-bite"></i> Cookies
+                    </div>
+                    <div class="nav-item" onclick="scrollToSection('features')">
+                        <i class="fas fa-star"></i> Features
+                    </div>
+                    <div class="nav-item" onclick="scrollToSection('contact')">
+                        <i class="fas fa-user"></i> Contact
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Stats Section -->
+            <section id="stats" class="section">
+                <h2 class="section-title">📊 Live Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="stat-icon fas fa-clock"></i>
+                        <div class="stat-value" id="uptime">0d 0h 0m</div>
+                        <div class="stat-label">System Uptime</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="stat-icon fas fa-comments"></i>
+                        <div class="stat-value" id="messages">0</div>
+                        <div class="stat-label">Active Threads</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="stat-icon fas fa-users"></i>
+                        <div class="stat-value" id="users">0</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="stat-icon fas fa-memory"></i>
+                        <div class="stat-value" id="memory">0 MB</div>
+                        <div class="stat-label">Memory Usage</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Controls Section -->
+            <section id="controls" class="section">
+                <h2 class="section-title">🎮 Bot Controls</h2>
+                <div class="control-panel">
+                    <h3 style="margin-bottom: 1rem; color: var(--secondary-pink);">System Management</h3>
+                    <div class="control-buttons">
+                        <button class="control-btn btn-start" onclick="controlBot('start')">
+                            <i class="fas fa-play"></i>
+                            Start Bot
+                        </button>
+                        <button class="control-btn btn-restart" onclick="controlBot('restart')">
+                            <i class="fas fa-redo"></i>
+                            Restart Bot
+                        </button>
+                        <button class="control-btn btn-stop" onclick="controlBot('stop')">
+                            <i class="fas fa-stop"></i>
+                            Stop Bot
+                        </button>
+                        <button class="control-btn btn-status" onclick="refreshStats()">
+                            <i class="fas fa-sync"></i>
+                            Refresh Status
+                        </button>
+                    </div>
+                    
+                    <!-- System Information -->
+                    <div style="margin-top: 2rem;">
+                        <h3 style="color: var(--blue-accent); margin-bottom: 1rem;">System Information</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <span style="display: block; font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.5rem;">Node.js Version:</span>
+                                <span style="font-weight: 600; color: var(--secondary-pink);" id="nodeVersion">--</span>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <span style="display: block; font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.5rem;">Platform:</span>
+                                <span style="font-weight: 600; color: var(--secondary-pink);" id="platform">--</span>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <span style="display: block; font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.5rem;">CPU Usage:</span>
+                                <span style="font-weight: 600; color: var(--secondary-pink);" id="cpuUsage">--</span>
+                            </div>
+                            <div style="background: rgba(255, 255, 255, 0.05); padding: 1rem; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <span style="display: block; font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.5rem;">Last Restart:</span>
+                                <span style="font-weight: 600; color: var(--secondary-pink);" id="lastRestart">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Cookie Management Panel -->
+                <div class="control-panel" style="margin-top: 2rem;">
+                    <h3 style="margin-bottom: 1rem; color: var(--secondary-pink);"><i class="fas fa-cookie-bite"></i> Cookie Management</h3>
+                    
+                    <!-- Current Cookie Status -->
+                    <div style="margin-bottom: 2rem;">
+                        <h4 style="color: var(--blue-accent); margin-bottom: 1rem;">Current Cookie Status</h4>
+                        <div style="background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1);" id="cookieStatus">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>Cookie Age:</span>
+                                <span id="cookieAge">--</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>Last Updated:</span>
+                                <span id="cookieLastUpdated">--</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Status:</span>
+                                <span id="cookieValidStatus" style="padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; background: #6b7280;">Unknown</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Update Cookie -->
+                    <div>
+                        <h4 style="color: var(--blue-accent); margin-bottom: 1rem;">Update Cookie</h4>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; color: var(--secondary-pink); font-weight: 500;" for="cookieInput">Paste Account.txt Content:</label>
+                            <textarea 
+                                id="cookieInput" 
+                                placeholder="Paste your Facebook cookie/account.txt content here..."
+                                rows="6"
+                                style="width: 100%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; padding: 1rem; font-family: monospace; resize: vertical;"
+                            ></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                            <button class="control-btn" style="background: linear-gradient(45deg, var(--blue-accent), #0284c7);" onclick="saveCookie()">
+                                <i class="fas fa-save"></i>
+                                Save Cookie
+                            </button>
+                            <button class="control-btn" style="background: linear-gradient(45deg, #6b7280, #4b5563);" onclick="loadCurrentCookie()">
+                                <i class="fas fa-eye"></i>
+                                View Current Cookie
+                            </button>
+                            <button class="control-btn" style="background: linear-gradient(45deg, var(--blue-accent), #0891b2);" onclick="validateCookie()">
+                                <i class="fas fa-check-circle"></i>
+                                Validate Cookie
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section id="features" class="section">
+                <h2 class="section-title">✨ Amazing Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <i class="feature-icon">🤖</i>
+                        <h3 class="feature-title">AI-Powered Bot</h3>
+                        <p>Advanced artificial intelligence with natural language processing and smart responses.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="feature-icon">🌸</i>
+                        <h3 class="feature-title">Beautiful Interface</h3>
+                        <p>Stunning Shizuka-themed design with smooth animations and magical effects.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="feature-icon">⚡</i>
+                        <h3 class="feature-title">Lightning Fast</h3>
+                        <p>Optimized performance with real-time updates and instant response times.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="feature-icon">🔒</i>
+                        <h3 class="feature-title">Secure & Reliable</h3>
+                        <p>Enterprise-grade security with automatic backups and error recovery.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="feature-icon">📱</i>
+                        <h3 class="feature-title">Mobile Ready</h3>
+                        <p>Fully responsive design that works perfectly on all devices and screen sizes.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="feature-icon">🎨</i>
+                        <h3 class="feature-title">Customizable</h3>
+                        <p>Extensive customization options with themes, plugins, and personalization features.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- About Developer / Contact Section -->
+            <section id="contact" class="section">
+                <h2 class="section-title">👨‍💻 About Developer</h2>
+                <div class="control-panel">
+                    <div style="text-align: center; padding: 2rem;">
+                        <div style="margin-bottom: 2rem;">
+                            <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(45deg, var(--primary-pink), var(--purple-accent)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 0 30px rgba(244, 114, 182, 0.4);">
+                                <i class="fas fa-user" style="font-size: 3rem; color: white;"></i>
+                            </div>
+                            <h3 style="font-size: 2rem; color: var(--secondary-pink); margin-bottom: 0.5rem; font-family: 'Orbitron', monospace;">ZISAN</h3>
+                            <p style="opacity: 0.8; font-size: 1.2rem; margin-bottom: 2rem;">Full Stack Developer & Bot Creator</p>
+                            <p style="opacity: 0.9; line-height: 1.6; max-width: 600px; margin: 0 auto 2rem;">Passionate developer specializing in AI chatbots, web development, and automation. Creator of Shizuka Bot with advanced features and beautiful user interfaces.</p>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;">
+                            <a href="#" id="facebookLink" class="control-btn" style="background: linear-gradient(45deg, #1877f2, #42a5f5); text-decoration: none;" target="_blank">
+                                <i class="fab fa-facebook-f"></i>
+                                Facebook Profile
+                            </a>
+                            <a href="mailto:your-email@gmail.com" id="emailLink" class="control-btn" style="background: linear-gradient(45deg, #ea4335, #fbbc04); text-decoration: none;" target="_blank">
+                                <i class="fas fa-envelope"></i>
+                                Gmail Contact
+                            </a>
+                            <a href="https://github.com/jisanshik005-beep" class="control-btn" style="background: linear-gradient(45deg, #333, #666); text-decoration: none;" target="_blank">
+                                <i class="fab fa-github"></i>
+                                GitHub Profile
+                            </a>
+                        </div>
+                        
+                        <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                            <h4 style="color: var(--blue-accent); margin-bottom: 1rem;">🛠️ Technologies Used</h4>
+                            <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                                <span style="background: rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 25px; font-size: 0.9rem;">Node.js</span>
+                                <span style="background: rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 25px; font-size: 0.9rem;">JavaScript</span>
+                                <span style="background: rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 25px; font-size: 0.9rem;">HTML/CSS</span>
+                                <span style="background: rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 25px; font-size: 0.9rem;">MongoDB</span>
+                                <span style="background: rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 25px; font-size: 0.9rem;">Facebook API</span>
+                                <span style="background: rgba(255, 255, 255, 0.1); padding: 0.5rem 1rem; border-radius: 25px; font-size: 0.9rem;">AI Integration</span>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 2rem;">
+                            <p style="opacity: 0.7; font-size: 0.9rem;">💖 Thank you for using Shizuka Bot! Feel free to reach out for support or collaboration.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 Shizuka Bot Dashboard. All rights reserved. Created with 💖 by <strong style="color: var(--secondary-pink);">ZISAN</strong></p>
+            <p style="margin-top: 0.5rem; opacity: 0.7;">Full Stack Developer • Bot Creator • Software Engineer</p>
+            <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 2rem; font-size: 0.9rem;">
+                <a href="#" id="footerFacebookLink" style="color: var(--light-pink); text-decoration: none; transition: all 0.3s ease;" target="_blank">
+                    <i class="fab fa-facebook-f"></i> Facebook
+                </a>
+                <a href="mailto:your-email@gmail.com" id="footerEmailLink" style="color: var(--light-pink); text-decoration: none; transition: all 0.3s ease;" target="_blank">
+                    <i class="fas fa-envelope"></i> Gmail
+                </a>
+                <a href="https://github.com/jisanshik005-beep" style="color: var(--light-pink); text-decoration: none; transition: all 0.3s ease;" target="_blank">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Enhanced particle system for hearts theme
+        function createEnhancedParticles() {
+            const container = document.getElementById('heartsContainer');
+            const particleTypes = ['♥', '💖', '💕', '✨', '💫', '⭐', '🌟', '💝'];
+            const colors = ['#ec4899', '#f472b6', '#ff69b4', '#ffb6c1', '#dda0dd', '#f9a8d4'];
+            
+            function createParticle() {
+                const particle = document.createElement('div');
+                const type = particleTypes[Math.floor(Math.random() * particleTypes.length)];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                particle.className = 'heart';
+                particle.innerHTML = type;
+                particle.style.left = Math.random() * window.innerWidth + 'px';
+                particle.style.color = color;
+                particle.style.fontSize = (Math.random() * 15 + 20) + 'px';
+                particle.style.animationDuration = (Math.random() * 4 + 6) + 's';
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                
+                container.appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.remove();
+                    }
+                }, 10000);
+            }
+            
+            // Create initial particles
+            for (let i = 0; i < 8; i++) {
+                setTimeout(createParticle, i * 300);
+            }
+            
+            // Continue creating particles
+            setInterval(createParticle, 1500);
+        }
+
+        // Real-time statistics updater with API integration
+        function updateStats() {
+            // Update bot status
+            fetch('/api/bot-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const botData = data.data;
+                        const statusDot = document.getElementById('mainStatusDot');
+                        const statusText = document.getElementById('mainStatusText');
+                        
+                        // Update status
+                        if (botData.status === 'online') {
+                            statusDot.className = 'status-dot status-online';
+                            statusText.textContent = 'System Online';
+                        } else {
+                            statusDot.className = 'status-dot status-offline';
+                            statusText.textContent = botData.message || 'System Offline';
+                        }
+                        
+                        // Update uptime
+                        const uptime = botData.uptime;
+                        const days = Math.floor(uptime / (24 * 3600));
+                        const hours = Math.floor((uptime % (24 * 3600)) / 3600);
+                        const minutes = Math.floor((uptime % 3600) / 60);
+                        
+                        let uptimeText = '';
+                        if (days > 0) uptimeText += days + 'd ';
+                        if (hours > 0) uptimeText += hours + 'h ';
+                        uptimeText += minutes + 'm';
+                        
+                        animateNumber('uptime', uptimeText);
+                    }
+                })
+                .catch(() => {
+                    const statusDot = document.getElementById('mainStatusDot');
+                    const statusText = document.getElementById('mainStatusText');
+                    statusDot.className = 'status-dot status-offline';
+                    statusText.textContent = 'Connection Error';
+                });
+                
+            // Update system info
+            fetch('/api/system-info')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        animateNumber('memory', data.data.memoryUsage);
+                        
+                        // Update system information panel
+                        document.getElementById('nodeVersion').textContent = data.data.nodeVersion || '--';
+                        document.getElementById('platform').textContent = data.data.platform || '--';
+                        document.getElementById('cpuUsage').textContent = 'N/A'; // CPU usage not available in current API
+                        document.getElementById('lastRestart').textContent = data.data.lastRestart || '--';
+                    }
+                })
+                .catch(() => {});
+                
+            // Update real-time stats (threads and users)
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        animateNumber('users', data.data.totalUsers || 0);
+                        animateNumber('messages', data.data.totalThreads || 0); // Using threads as messages for now
+                        
+                        if (!document.getElementById('memory').textContent || document.getElementById('memory').textContent === '0 MB') {
+                            animateNumber('memory', data.data.memoryUsage);
+                        }
+                    }
+                })
+                .catch(() => {
+                    // Set defaults if API fails
+                    if (document.getElementById('users').textContent === '0') {
+                        animateNumber('users', '0');
+                    }
+                    if (document.getElementById('messages').textContent === '0') {
+                        animateNumber('messages', '0');
+                    }
+                });
+                
+            // Update cookie status
+            updateCookieStatus();
+        }
+
+        function animateNumber(elementId, newValue) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            element.style.transform = 'scale(1.2)';
+            element.style.color = '#38bdf8';
+            
+            setTimeout(() => {
+                element.textContent = newValue;
+                element.style.transform = 'scale(1)';
+                element.style.color = '#f472b6';
+            }, 200);
+        }
+
+        // Bot control with enhanced feedback
+        async function controlBot(action) {
+            showToast(`${action.charAt(0).toUpperCase() + action.slice(1)}ing bot...`, 'info');
+            
+            try {
+                const response = await fetch('/api/bot-control', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showToast(data.message, 'success');
+                    updateBotStatus(action === 'start' || action === 'restart' ? 'online' : 'offline');
+                    setTimeout(refreshStats, 2000);
+                } else {
+                    showToast(data.message, 'error');
+                }
+            } catch (error) {
+                showToast('Failed to control bot', 'error');
+                console.error('Bot control error:', error);
+            }
+        }
+
+        // Enhanced toast notifications
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <i class="fas fa-${getToastIcon(type)}" style="margin-right: 0.5rem;"></i>
+                ${message}
+            `;
+            
+            const colors = {
+                success: '#10b981',
+                error: '#ef4444',
+                warning: '#f59e0b',
+                info: '#38bdf8'
+            };
+            
+            toast.style.borderLeft = `4px solid ${colors[type] || colors.info}`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'toastSlideIn 0.3s ease reverse';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function getToastIcon(type) {
+            const icons = {
+                success: 'check-circle',
+                error: 'exclamation-triangle',
+                warning: 'exclamation-circle',
+                info: 'info-circle'
+            };
+            return icons[type] || icons.info;
+        }
+
+        // Status updater
+        function updateBotStatus(status) {
+            const statusDot = document.getElementById('mainStatusDot');
+            const statusText = document.getElementById('mainStatusText');
+            
+            statusDot.className = 'status-dot status-' + status;
+            statusText.textContent = status === 'online' ? 'System Online' : 'System Offline';
+        }
+
+        // Smooth scroll to sections
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Refresh statistics
+        function refreshStats() {
+            showToast('Refreshing statistics...', 'info');
+            updateStats();
+            
+            // Add refresh animation to stat cards
+            document.querySelectorAll('.stat-card').forEach(card => {
+                card.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    card.style.transform = 'scale(1)';
+                }, 100);
+            });
+        }
+
+        // Enhanced hover effects for stat cards
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.boxShadow = '0 25px 50px rgba(244, 114, 182, 0.4)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.boxShadow = '';
+            });
+        });
+
+        // Initialize dashboard
+        function initializeDashboard() {
+            console.log('🌸 Initializing Shizuka Bot Dashboard...');
+            
+            // Start particle system
+            createEnhancedParticles();
+            
+            // Initial stats update
+            updateStats();
+            
+            // Set up auto-refresh
+            setInterval(updateStats, 30000);
+            
+            // Add entrance animations with delay
+            document.querySelectorAll('.section').forEach((section, index) => {
+                section.style.animationDelay = (index * 0.2) + 's';
+            });
+            
+            showToast('🌸 Welcome to Shizuka Bot Dashboard! ✨', 'success');
+        }
+
+        // Cookie management functions
+        async function saveCookie() {
+            const cookieInput = document.getElementById('cookieInput');
+            const cookieData = cookieInput.value.trim();
+            
+            if (!cookieData) {
+                showToast('Please enter cookie data', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/cookie-save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cookie: cookieData })
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showToast('Cookie saved successfully!', 'success');
+                    cookieInput.value = '';
+                    setTimeout(updateCookieStatus, 1000);
+                } else {
+                    showToast(data.message || 'Failed to save cookie', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to save cookie', 'error');
+            }
+        }
+        
+        async function loadCurrentCookie() {
+            try {
+                const response = await fetch('/api/cookie-load');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    document.getElementById('cookieInput').value = data.data.cookie || '';
+                    showToast('Current cookie loaded', 'info');
+                } else {
+                    showToast(data.message || 'Failed to load cookie', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to load cookie', 'error');
+            }
+        }
+        
+        async function validateCookie() {
+            const cookieInput = document.getElementById('cookieInput');
+            const cookieData = cookieInput.value.trim();
+            
+            if (!cookieData) {
+                showToast('Please enter cookie data to validate', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/validate-cookie', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cookie: cookieData })
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const isValid = data.data.isValid;
+                    showToast(data.data.message, isValid ? 'success' : 'warning');
+                } else {
+                    showToast(data.message || 'Validation failed', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to validate cookie', 'error');
+            }
+        }
+        
+        // Update cookie status
+        async function updateCookieStatus() {
+            try {
+                const response = await fetch('/api/cookie-status');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    document.getElementById('cookieAge').textContent = data.data.age || '--';
+                    document.getElementById('cookieLastUpdated').textContent = data.data.lastUpdated || '--';
+                    
+                    const statusBadge = document.getElementById('cookieValidStatus');
+                    const isValid = data.data.isValid;
+                    const botRunning = data.data.botRunning;
+                    
+                    if (botRunning) {
+                        statusBadge.textContent = 'Active & Valid';
+                        statusBadge.className = 'status-badge valid';
+                    } else if (isValid) {
+                        statusBadge.textContent = 'Valid (Bot Offline)';
+                        statusBadge.className = 'status-badge warning';
+                    } else {
+                        statusBadge.textContent = 'May be Invalid';
+                        statusBadge.className = 'status-badge invalid';
+                    }
+                }
+            } catch (error) {
+                // Ignore cookie status errors
+            }
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'r':
+                        e.preventDefault();
+                        refreshStats();
+                        break;
+                    case '1':
+                        e.preventDefault();
+                        scrollToSection('stats');
+                        break;
+                    case '2':
+                        e.preventDefault();
+                        scrollToSection('controls');
+                        break;
+                    case '3':
+                        e.preventDefault();
+                        scrollToSection('features');
+                        break;
+                }
+            }
+        });
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
+        
+        // Also initialize immediately (fallback)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeDashboard);
+        } else {
+            initializeDashboard();
+        }
+
+        console.log('🌸 Shizuka Bot Dashboard Script Loaded Successfully! ✨');
+        
+        // Update contact information - ZISAN: Replace these with your actual links
+        function updateContactInfo() {
+            // ZISAN's actual contact information
+            const facebookProfile = 'https://www.facebook.com/share/1FTb6WzFHB/';
+            const gmailAddress = 'zisanshik005@gmail.com';
+            
+            // Update all Facebook links
+            document.getElementById('facebookLink').href = facebookProfile;
+            document.getElementById('footerFacebookLink').href = facebookProfile;
+            
+            // Update all Gmail links
+            document.getElementById('emailLink').href = `mailto:${gmailAddress}`;
+            document.getElementById('footerEmailLink').href = `mailto:${gmailAddress}`;
+            
+            console.log('📞 Contact information updated for ZISAN!');
+        }
+        
+        // Call the function to update contact info
+        updateContactInfo();
+    </script>
+</body>
+</html>

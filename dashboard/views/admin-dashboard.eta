@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shizuka Bot Dashboard - Futuristic Control Panel</title>
+    <link rel="icon" href="/images/shizuka-icon.png" type="image/png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/shizuka-dashboard.css">
+</head>
+<body>
+    <!-- Floating Hearts Animation -->
+    <div class="hearts-container">
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+    </div>
+
+    <!-- Particle Background -->
+    <div class="particles-bg" id="particles-bg"></div>
+
+    <!-- Main Container -->
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Shizuka Bot</h1>
+                        <p>Futuristic Control Panel</p>
+                    </div>
+                </div>
+                <div class="status-section">
+                    <div class="status-indicator" id="botStatus">
+                        <div class="status-dot offline"></div>
+                        <span>Checking...</span>
+                    </div>
+                    <div class="user-info">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Admin Panel</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="uptimeDisplay">--</h3>
+                        <p>Uptime</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="threadCount">--</h3>
+                        <p>Active Threads</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="userCount">--</h3>
+                        <p>Total Users</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-memory"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="memoryUsage">--</h3>
+                        <p>Memory Usage</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Panels -->
+            <div class="control-panels">
+                <!-- Bot Control Panel -->
+                <div class="control-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-cogs"></i> Bot Control</h2>
+                    </div>
+                    <div class="panel-content">
+                        <div class="control-buttons">
+                            <button class="btn btn-success" id="startBot" onclick="controlBot('start')">
+                                <i class="fas fa-play"></i>
+                                Start Bot
+                            </button>
+                            <button class="btn btn-warning" id="restartBot" onclick="controlBot('restart')">
+                                <i class="fas fa-redo"></i>
+                                Restart Bot
+                            </button>
+                            <button class="btn btn-danger" id="stopBot" onclick="controlBot('stop')">
+                                <i class="fas fa-stop"></i>
+                                Stop Bot
+                            </button>
+                        </div>
+                        
+                        <div class="system-info">
+                            <h3>System Information</h3>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Node.js Version:</span>
+                                    <span class="info-value" id="nodeVersion">--</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Platform:</span>
+                                    <span class="info-value" id="platform">--</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">CPU Usage:</span>
+                                    <span class="info-value" id="cpuUsage">--</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Last Restart:</span>
+                                    <span class="info-value" id="lastRestart">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cookie Management Panel -->
+                <div class="control-panel">
+                    <div class="panel-header">
+                        <h2><i class="fas fa-cookie-bite"></i> Cookie Management</h2>
+                    </div>
+                    <div class="panel-content">
+                        <div class="cookie-section">
+                            <h3>Current Cookie Status</h3>
+                            <div class="cookie-status" id="cookieStatus">
+                                <div class="status-item">
+                                    <span>Cookie Age:</span>
+                                    <span id="cookieAge">--</span>
+                                </div>
+                                <div class="status-item">
+                                    <span>Last Updated:</span>
+                                    <span id="cookieLastUpdated">--</span>
+                                </div>
+                                <div class="status-item">
+                                    <span>Status:</span>
+                                    <span id="cookieValidStatus" class="status-badge">Unknown</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="cookie-input-section">
+                            <h3>Update Cookie</h3>
+                            <div class="input-group">
+                                <label for="cookieInput">Paste Account.txt Content:</label>
+                                <textarea 
+                                    id="cookieInput" 
+                                    placeholder="Paste your Facebook cookie/account.txt content here..."
+                                    rows="8"
+                                ></textarea>
+                            </div>
+                            
+                            <div class="cookie-actions">
+                                <button class="btn btn-primary" onclick="saveCookie()">
+                                    <i class="fas fa-save"></i>
+                                    Save Cookie
+                                </button>
+                                <button class="btn btn-secondary" onclick="loadCurrentCookie()">
+                                    <i class="fas fa-eye"></i>
+                                    View Current Cookie
+                                </button>
+                                <button class="btn btn-info" onclick="validateCookie()">
+                                    <i class="fas fa-check-circle"></i>
+                                    Validate Cookie
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="action-panel">
+                    <h3>Quick Actions</h3>
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="viewLogs()">
+                            <i class="fas fa-file-alt"></i>
+                            <span>View Logs</span>
+                        </button>
+                        <button class="action-btn" onclick="backupData()">
+                            <i class="fas fa-download"></i>
+                            <span>Backup Data</span>
+                        </button>
+                        <button class="action-btn" onclick="clearCache()">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>Clear Cache</span>
+                        </button>
+                        <button class="action-btn" onclick="refreshStats()">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>Refresh Stats</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="dashboard-footer">
+            <div class="footer-content">
+                <p>&copy; 2024 Shizuka Bot - Futuristic Dashboard | Built with 💖</p>
+                <div class="footer-links">
+                    <a href="#" onclick="showHelp()">Help</a>
+                    <a href="#" onclick="showSettings()">Settings</a>
+                    <a href="/logout">Logout</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal for various actions -->
+    <div class="modal" id="actionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Action</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content -->
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Scripts -->
+    <script src="/js/shizuka-dashboard.js"></script>
+    <script>
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            startAutoRefresh();
+            createParticles();
+        });
+    </script>
+</body>
+</html>

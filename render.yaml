@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: shizuka-mongodb
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    healthCheckPath: /api/bot-status
+    plan: free
+    region: oregon
+    envVars:
+      - key: NODE_VERSION
+        value: 18.x
+      - key: MONGODB_URI
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        fromService:
+          type: web
+          name: shizuka-mongodb
+          property: port

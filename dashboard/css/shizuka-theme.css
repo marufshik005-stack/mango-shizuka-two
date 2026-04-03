@@ -1,0 +1,638 @@
+/* Shizuka Theme CSS - Doraemon Inspired Pink Theme */
+
+:root {
+  /* Shizuka Pink Color Palette */
+  --shizuka-pink-50: #fdf2f8;
+  --shizuka-pink-100: #fce7f3;
+  --shizuka-pink-200: #fbcfe8;
+  --shizuka-pink-300: #f9a8d4;
+  --shizuka-pink-400: #f472b6;
+  --shizuka-pink-500: #ec4899;
+  --shizuka-pink-600: #db2777;
+  --shizuka-pink-700: #be185d;
+  --shizuka-pink-800: #9d174d;
+  --shizuka-pink-900: #831843;
+  
+  /* Doraemon Blue Accents */
+  --doraemon-blue: #0095d9;
+  --doraemon-blue-light: #4fc3f7;
+  --doraemon-blue-dark: #0277bd;
+  
+  /* Soft Background Colors */
+  --shizuka-bg-primary: linear-gradient(135deg, #fce7f3 0%, #f9a8d4 100%);
+  --shizuka-bg-secondary: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+  --shizuka-bg-card: rgba(255, 255, 255, 0.95);
+  --shizuka-bg-glass: rgba(255, 255, 255, 0.8);
+  
+  /* Text Colors */
+  --shizuka-text-primary: #831843;
+  --shizuka-text-secondary: #be185d;
+  --shizuka-text-light: #9d174d;
+  
+  /* Heart Animation Colors */
+  --heart-color-1: #f472b6;
+  --heart-color-2: #ec4899;
+  --heart-color-3: #db2777;
+}
+
+/* Global Shizuka Theme Styles */
+body {
+  background: var(--shizuka-bg-primary);
+  background-attachment: fixed;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--shizuka-text-primary);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Shizuka Character Background */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 400px;
+  background: 
+    radial-gradient(circle at 50% 20%, rgba(255, 182, 193, 0.8) 0%, transparent 50%),
+    radial-gradient(circle at 30% 40%, rgba(255, 192, 203, 0.6) 0%, transparent 40%),
+    radial-gradient(circle at 70% 60%, rgba(255, 218, 225, 0.7) 0%, transparent 45%);
+  z-index: -2;
+  animation: shizukaFloat 15s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shizukaFloat {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg) scale(1); 
+    opacity: 0.3;
+  }
+  50% { 
+    transform: translateY(-20px) rotate(2deg) scale(1.05); 
+    opacity: 0.5;
+  }
+}
+
+/* Shizuka Background with Hearts */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(244, 114, 182, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 60%, rgba(219, 39, 119, 0.1) 0%, transparent 50%);
+  z-index: -1;
+  animation: backgroundFloat 20s ease-in-out infinite;
+}
+
+@keyframes backgroundFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(2deg); }
+}
+
+/* Floating Hearts Animation */
+.floating-hearts {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.heart {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: var(--heart-color-1);
+  transform: rotate(45deg);
+  animation: floatUp 15s linear infinite;
+  opacity: 0.6;
+}
+
+.heart::before,
+.heart::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: var(--heart-color-1);
+  border-radius: 50%;
+}
+
+.heart::before {
+  top: -10px;
+  left: 0;
+}
+
+.heart::after {
+  top: 0;
+  left: -10px;
+}
+
+.heart:nth-child(2n) {
+  background: var(--heart-color-2);
+  animation-delay: -5s;
+}
+
+.heart:nth-child(2n)::before,
+.heart:nth-child(2n)::after {
+  background: var(--heart-color-2);
+}
+
+.heart:nth-child(3n) {
+  background: var(--heart-color-3);
+  animation-delay: -10s;
+}
+
+.heart:nth-child(3n)::before,
+.heart:nth-child(3n)::after {
+  background: var(--heart-color-3);
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(100vh) rotate(45deg) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-100px) rotate(45deg) scale(1);
+    opacity: 0;
+  }
+}
+
+/* Shizuka Dashboard Styles */
+.shizuka-dashboard {
+  background: var(--shizuka-bg-primary);
+  min-height: 100vh;
+  padding: 2rem 0;
+  position: relative;
+}
+
+.shizuka-header {
+  background: var(--shizuka-bg-card);
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 
+    0 25px 50px rgba(236, 72, 153, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(244, 114, 182, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.shizuka-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(244, 114, 182, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+  animation: headerGlow 8s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes headerGlow {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.1); }
+}
+
+.shizuka-title {
+  font-size: 3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--shizuka-pink-600), var(--doraemon-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 4px 8px rgba(236, 72, 153, 0.3);
+  position: relative;
+}
+
+.shizuka-title::after {
+  content: '💕';
+  position: absolute;
+  right: -40px;
+  top: 0;
+  font-size: 2rem;
+  animation: heartBeat 2s ease-in-out infinite;
+}
+
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.shizuka-subtitle {
+  color: var(--shizuka-text-secondary);
+  font-size: 1.2rem;
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+/* Shizuka Cards */
+.shizuka-card {
+  background: var(--shizuka-bg-card);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 
+    0 20px 40px rgba(236, 72, 153, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(244, 114, 182, 0.2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.shizuka-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--shizuka-pink-400), var(--doraemon-blue), var(--shizuka-pink-500));
+  background-size: 200% 100%;
+  animation: gradientShift 3s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.shizuka-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 30px 60px rgba(236, 72, 153, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+/* Shizuka Buttons */
+.shizuka-btn {
+  background: linear-gradient(135deg, var(--shizuka-pink-500), var(--doraemon-blue));
+  border: none;
+  border-radius: 15px;
+  padding: 0.875rem 2rem;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 8px 25px rgba(236, 72, 153, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.shizuka-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.shizuka-btn:hover::before {
+  left: 100%;
+}
+
+.shizuka-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 15px 35px rgba(236, 72, 153, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
+  color: white;
+  text-decoration: none;
+}
+
+.shizuka-btn:active {
+  transform: translateY(-1px);
+}
+
+/* Shizuka Form Elements */
+.shizuka-input {
+  border: 2px solid rgba(244, 114, 182, 0.3);
+  border-radius: 15px;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  background: var(--shizuka-bg-glass);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  color: var(--shizuka-text-primary);
+}
+
+.shizuka-input:focus {
+  border-color: var(--shizuka-pink-500);
+  box-shadow: 
+    0 0 0 0.3rem rgba(236, 72, 153, 0.25),
+    0 0 20px rgba(236, 72, 153, 0.1);
+  background: white;
+  outline: none;
+}
+
+.shizuka-input::placeholder {
+  color: var(--shizuka-text-light);
+  opacity: 0.7;
+}
+
+/* Shizuka Thread Cards */
+.shizuka-thread-card {
+  background: var(--shizuka-bg-card);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 
+    0 10px 30px rgba(236, 72, 153, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(244, 114, 182, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.shizuka-thread-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--shizuka-pink-400), var(--doraemon-blue));
+}
+
+.shizuka-thread-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 
+    0 20px 40px rgba(236, 72, 153, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.shizuka-thread-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--shizuka-text-primary);
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.shizuka-thread-id {
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(135deg, var(--shizuka-pink-600), var(--doraemon-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* Shizuka Stats */
+.shizuka-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.1), rgba(0, 149, 217, 0.1));
+  border-radius: 15px;
+  color: var(--shizuka-text-secondary);
+  font-weight: 600;
+  border: 1px solid rgba(244, 114, 182, 0.2);
+}
+
+.shizuka-stat-icon {
+  font-size: 1.2rem;
+  color: var(--doraemon-blue);
+}
+
+/* Shizuka Navigation */
+.shizuka-nav {
+  background: var(--shizuka-bg-card);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 1rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 
+    0 15px 35px rgba(236, 72, 153, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(244, 114, 182, 0.2);
+}
+
+.shizuka-nav-item {
+  color: var(--shizuka-text-primary);
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+}
+
+.shizuka-nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(244, 114, 182, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.shizuka-nav-item:hover::before {
+  left: 100%;
+}
+
+.shizuka-nav-item:hover {
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.1), rgba(0, 149, 217, 0.1));
+  color: var(--shizuka-text-primary);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+/* Shizuka Admin Panel */
+.shizuka-admin-panel {
+  background: var(--shizuka-bg-card);
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 
+    0 25px 50px rgba(236, 72, 153, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(244, 114, 182, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.shizuka-admin-panel::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    radial-gradient(circle at 70% 30%, rgba(0, 149, 217, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 30% 70%, rgba(244, 114, 182, 0.1) 0%, transparent 50%);
+  animation: adminGlow 10s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes adminGlow {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(-180deg) scale(1.1); }
+}
+
+/* Cookie Management Section */
+.shizuka-cookie-section {
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.05), rgba(0, 149, 217, 0.05));
+  border: 2px dashed rgba(244, 114, 182, 0.3);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.shizuka-cookie-section:hover {
+  border-color: var(--shizuka-pink-500);
+  background: linear-gradient(135deg, rgba(244, 114, 182, 0.1), rgba(0, 149, 217, 0.1));
+}
+
+.shizuka-cookie-textarea {
+  width: 100%;
+  min-height: 200px;
+  border: 2px solid rgba(244, 114, 182, 0.3);
+  border-radius: 15px;
+  padding: 1.5rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  background: var(--shizuka-bg-glass);
+  backdrop-filter: blur(10px);
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+.shizuka-cookie-textarea:focus {
+  border-color: var(--shizuka-pink-500);
+  box-shadow: 
+    0 0 0 0.3rem rgba(236, 72, 153, 0.25),
+    0 0 20px rgba(236, 72, 153, 0.1);
+  background: white;
+  outline: none;
+}
+
+/* Shizuka Animations */
+.shizuka-fade-in {
+  animation: shizukaFadeIn 0.8s ease-out;
+}
+
+@keyframes shizukaFadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(30px) scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+.shizuka-bounce {
+  animation: shizukaBounce 0.6s ease-out;
+}
+
+@keyframes shizukaBounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .shizuka-title {
+    font-size: 2.2rem;
+  }
+  
+  .shizuka-header {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .shizuka-card {
+    padding: 1.5rem;
+  }
+  
+  .shizuka-admin-panel {
+    padding: 1.5rem;
+  }
+}
+
+/* Loading Animation */
+.shizuka-loading {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(244, 114, 182, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--shizuka-pink-500);
+  animation: shizukaSpin 1s ease-in-out infinite;
+}
+
+@keyframes shizukaSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Success/Error Messages */
+.shizuka-alert {
+  border-radius: 15px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  border: 2px solid;
+  backdrop-filter: blur(10px);
+  font-weight: 600;
+}
+
+.shizuka-alert-success {
+  background: linear-gradient(135deg, rgba(37, 176, 3, 0.1), rgba(37, 176, 3, 0.05));
+  border-color: rgba(37, 176, 3, 0.3);
+  color: #1c6c09;
+}
+
+.shizuka-alert-error {
+  background: linear-gradient(135deg, rgba(237, 32, 0, 0.1), rgba(237, 32, 0, 0.05));
+  border-color: rgba(237, 32, 0, 0.3);
+  color: #b81800;
+}
+
+.shizuka-alert-warning {
+  background: linear-gradient(135deg, rgba(229, 120, 11, 0.1), rgba(229, 120, 11, 0.05));
+  border-color: rgba(229, 120, 11, 0.3);
+  color: #bc3803;
+}

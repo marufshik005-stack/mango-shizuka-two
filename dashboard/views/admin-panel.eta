@@ -1,0 +1,885 @@
+<%~ includeFile("partials/header.eta", {
+	user: user
+}); %>
+<%~ includeFile("partials/message.eta"); %>
+<%~ includeFile("partials/title.eta", {
+	icon: "fas fa-crown",
+	title: "Shizuka Admin Panel"
+}); %>
+
+<style>
+  /* Import Shizuka Theme */
+  @import url('/css/shizuka-theme.css');
+  
+  /* Additional Admin Panel Styles */
+  .admin-panel-container {
+    background: var(--shizuka-bg-primary);
+    min-height: 100vh;
+    padding: 2rem 0;
+    position: relative;
+  }
+  
+  .admin-panel-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(244, 114, 182, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 40% 60%, rgba(0, 149, 217, 0.08) 0%, transparent 50%);
+    z-index: -1;
+    animation: backgroundFloat 25s ease-in-out infinite;
+  }
+  
+  .admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .admin-card {
+    background: var(--shizuka-bg-card);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 
+      0 20px 40px rgba(236, 72, 153, 0.1),
+      0 0 0 1px rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(244, 114, 182, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .admin-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, var(--shizuka-pink-400), var(--doraemon-blue), var(--shizuka-pink-500));
+    background-size: 200% 100%;
+    animation: gradientShift 3s ease-in-out infinite;
+  }
+  
+  .admin-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+      0 30px 60px rgba(236, 72, 153, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.4);
+  }
+  
+  .admin-card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--shizuka-text-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .admin-card-icon {
+    font-size: 1.8rem;
+    color: var(--doraemon-blue);
+  }
+  
+  .bot-status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(37, 176, 3, 0.1), rgba(37, 176, 3, 0.05));
+    border-radius: 15px;
+    border: 2px solid rgba(37, 176, 3, 0.3);
+    margin-bottom: 1rem;
+  }
+  
+  .bot-status.offline {
+    background: linear-gradient(135deg, rgba(237, 32, 0, 0.1), rgba(237, 32, 0, 0.05));
+    border-color: rgba(237, 32, 0, 0.3);
+  }
+  
+  .status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #25b003;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  
+  .status-indicator.offline {
+    background: #ed2000;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.2); }
+  }
+  
+  .cookie-upload-area {
+    border: 3px dashed rgba(244, 114, 182, 0.4);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.05), rgba(0, 149, 217, 0.05));
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .cookie-upload-area:hover {
+    border-color: var(--shizuka-pink-500);
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.1), rgba(0, 149, 217, 0.1));
+    transform: translateY(-2px);
+  }
+  
+  .cookie-upload-area.dragover {
+    border-color: var(--shizuka-pink-500);
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.15), rgba(0, 149, 217, 0.15));
+    transform: scale(1.02);
+  }
+  
+  .upload-icon {
+    font-size: 3rem;
+    color: var(--shizuka-pink-500);
+    margin-bottom: 1rem;
+    animation: bounce 2s ease-in-out infinite;
+  }
+  
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+  }
+  
+  .upload-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--shizuka-text-primary);
+    margin-bottom: 0.5rem;
+  }
+  
+  .upload-subtext {
+    color: var(--shizuka-text-light);
+    font-size: 0.9rem;
+  }
+  
+  .cookie-textarea {
+    width: 100%;
+    min-height: 250px;
+    border: 2px solid rgba(244, 114, 182, 0.3);
+    border-radius: 15px;
+    padding: 1.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    background: var(--shizuka-bg-glass);
+    backdrop-filter: blur(10px);
+    resize: vertical;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+  }
+  
+  .cookie-textarea:focus {
+    border-color: var(--shizuka-pink-500);
+    box-shadow: 
+      0 0 0 0.3rem rgba(236, 72, 153, 0.25),
+      0 0 20px rgba(236, 72, 153, 0.1);
+    background: white;
+    outline: none;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .btn-save-cookie {
+    background: linear-gradient(135deg, var(--shizuka-pink-500), var(--doraemon-blue));
+    border: none;
+    border-radius: 15px;
+    padding: 1rem 2rem;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 
+      0 8px 25px rgba(236, 72, 153, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-save-cookie::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+  }
+  
+  .btn-save-cookie:hover::before {
+    left: 100%;
+  }
+  
+  .btn-save-cookie:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+      0 15px 35px rgba(236, 72, 153, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.3);
+  }
+  
+  .btn-clear-cookie {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    border: none;
+    border-radius: 15px;
+    padding: 1rem 2rem;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 
+      0 8px 25px rgba(108, 117, 125, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
+  
+  .btn-clear-cookie:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+      0 15px 35px rgba(108, 117, 125, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.3);
+  }
+  
+  .btn-start-bot {
+    background: linear-gradient(135deg, #25b003, #1c6c09);
+    border: none;
+    border-radius: 15px;
+    padding: 1rem 2rem;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 
+      0 8px 25px rgba(37, 176, 3, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.2);
+  }
+  
+  .btn-start-bot:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+      0 15px 35px rgba(37, 176, 3, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.3);
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .stat-card {
+    background: linear-gradient(135deg, rgba(244, 114, 182, 0.1), rgba(0, 149, 217, 0.1));
+    border: 2px solid rgba(244, 114, 182, 0.2);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(236, 72, 153, 0.2);
+  }
+  
+  .stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--shizuka-text-primary);
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-label {
+    color: var(--shizuka-text-secondary);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(244, 114, 182, 0.8);
+    backdrop-filter: blur(10px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  
+  .loading-content {
+    background: white;
+    border-radius: 20px;
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  }
+  
+  .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(244, 114, 182, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--shizuka-pink-500);
+    animation: spin 1s ease-in-out infinite;
+    margin: 0 auto 1rem;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .floating-hearts {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  .heart {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: var(--heart-color-1);
+    transform: rotate(45deg);
+    animation: floatUp 20s linear infinite;
+    opacity: 0.4;
+  }
+  
+  .heart::before,
+  .heart::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: var(--heart-color-1);
+    border-radius: 50%;
+  }
+  
+  .heart::before {
+    top: -10px;
+    left: 0;
+  }
+  
+  .heart::after {
+    top: 0;
+    left: -10px;
+  }
+  
+  .heart:nth-child(2n) {
+    background: var(--heart-color-2);
+    animation-delay: -7s;
+  }
+  
+  .heart:nth-child(2n)::before,
+  .heart:nth-child(2n)::after {
+    background: var(--heart-color-2);
+  }
+  
+  .heart:nth-child(3n) {
+    background: var(--heart-color-3);
+    animation-delay: -14s;
+  }
+  
+  .heart:nth-child(3n)::before,
+  .heart:nth-child(3n)::after {
+    background: var(--heart-color-3);
+  }
+  
+  @keyframes floatUp {
+    0% {
+      transform: translateY(100vh) rotate(45deg) scale(0);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.4;
+    }
+    90% {
+      opacity: 0.4;
+    }
+    100% {
+      transform: translateY(-100px) rotate(45deg) scale(1);
+      opacity: 0;
+    }
+  }
+</style>
+
+<!-- Floating Hearts Background -->
+<div class="floating-hearts" id="floatingHearts"></div>
+
+<div class="admin-panel-container">
+  <div class="container">
+    <!-- Header -->
+    <div class="shizuka-header shizuka-fade-in">
+      <h1 class="shizuka-title">
+        <i class="fas fa-crown"></i>
+        Shizuka Admin Panel
+      </h1>
+      <p class="shizuka-subtitle">Manage your bot with love and care! 💕</p>
+    </div>
+
+    <!-- Admin Grid -->
+    <div class="admin-grid">
+      <!-- Bot Status Card -->
+      <div class="admin-card shizuka-fade-in">
+        <div class="admin-card-title">
+          <i class="fas fa-robot admin-card-icon"></i>
+          Bot Status
+        </div>
+        <div class="bot-status" id="botStatus">
+          <div class="status-indicator" id="statusIndicator"></div>
+          <div>
+            <div class="fw-bold" id="statusText">Checking...</div>
+            <div class="small text-muted" id="statusSubtext">Connecting to bot...</div>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number" id="uptimeStat">--</div>
+            <div class="stat-label">Uptime</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="threadsStat">--</div>
+            <div class="stat-label">Threads</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="usersStat">--</div>
+            <div class="stat-label">Users</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cookie Management Card -->
+      <div class="admin-card shizuka-fade-in">
+        <div class="admin-card-title">
+          <i class="fas fa-cookie-bite admin-card-icon"></i>
+          Cookie Management
+        </div>
+        <div class="cookie-upload-area" id="cookieUploadArea">
+          <div class="upload-icon">
+            <i class="fas fa-cloud-upload-alt"></i>
+          </div>
+          <div class="upload-text">Drop your Facebook cookie here</div>
+          <div class="upload-subtext">or click to browse files</div>
+          <input type="file" id="cookieFileInput" accept=".txt,.json" style="display: none;">
+        </div>
+        <textarea 
+          class="cookie-textarea" 
+          id="cookieTextarea" 
+          placeholder="Paste your Facebook cookie JSON here...&#10;&#10;Example:&#10;[&#10;  {&#10;    &quot;domain&quot;: &quot;.facebook.com&quot;,&#10;    &quot;name&quot;: &quot;c_user&quot;,&#10;    &quot;value&quot;: &quot;your_user_id&quot;&#10;  }&#10;]"
+        ></textarea>
+        <div class="action-buttons">
+          <button class="btn-save-cookie" id="saveCookieBtn">
+            <i class="fas fa-save"></i>
+            Save Cookie
+          </button>
+          <button class="btn-clear-cookie" id="clearCookieBtn">
+            <i class="fas fa-trash"></i>
+            Clear
+          </button>
+          <button class="btn-start-bot" id="startBotBtn">
+            <i class="fas fa-play"></i>
+            Start Bot
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Actions Card -->
+      <div class="admin-card shizuka-fade-in">
+        <div class="admin-card-title">
+          <i class="fas fa-bolt admin-card-icon"></i>
+          Quick Actions
+        </div>
+        <div class="d-grid gap-2">
+          <button class="shizuka-btn" id="restartBotBtn">
+            <i class="fas fa-redo"></i>
+            Restart Bot
+          </button>
+          <button class="shizuka-btn" id="stopBotBtn">
+            <i class="fas fa-stop"></i>
+            Stop Bot
+          </button>
+          <button class="shizuka-btn" id="viewLogsBtn">
+            <i class="fas fa-file-alt"></i>
+            View Logs
+          </button>
+          <button class="shizuka-btn" id="backupDataBtn">
+            <i class="fas fa-download"></i>
+            Backup Data
+          </button>
+        </div>
+      </div>
+
+      <!-- System Info Card -->
+      <div class="admin-card shizuka-fade-in">
+        <div class="admin-card-title">
+          <i class="fas fa-info-circle admin-card-icon"></i>
+          System Information
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number" id="memoryUsage">--</div>
+            <div class="stat-label">Memory Usage</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="cpuUsage">--</div>
+            <div class="stat-label">CPU Usage</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="nodeVersion">--</div>
+            <div class="stat-label">Node Version</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-content">
+    <div class="loading-spinner"></div>
+    <h4>Processing...</h4>
+    <p id="loadingText">Please wait while we process your request</p>
+  </div>
+</div>
+
+<script>
+  // Initialize floating hearts
+  function createFloatingHearts() {
+    const heartsContainer = document.getElementById('floatingHearts');
+    const heartCount = 15;
+    
+    for (let i = 0; i < heartCount; i++) {
+      const heart = document.createElement('div');
+      heart.className = 'heart';
+      heart.style.left = Math.random() * 100 + '%';
+      heart.style.animationDelay = Math.random() * 20 + 's';
+      heart.style.animationDuration = (Math.random() * 10 + 15) + 's';
+      heartsContainer.appendChild(heart);
+    }
+  }
+
+  // Bot status management
+  function updateBotStatus() {
+    fetch('/api/bot-status')
+      .then(response => response.json())
+      .then(data => {
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const statusSubtext = document.getElementById('statusSubtext');
+        const botStatus = document.getElementById('botStatus');
+        
+        if (data.online) {
+          statusIndicator.classList.remove('offline');
+          statusText.textContent = 'Online';
+          statusSubtext.textContent = `Connected since ${data.connectedAt || 'Unknown'}`;
+          botStatus.classList.remove('offline');
+        } else {
+          statusIndicator.classList.add('offline');
+          statusText.textContent = 'Offline';
+          statusSubtext.textContent = 'Bot is not running';
+          botStatus.classList.add('offline');
+        }
+        
+        // Update stats
+        document.getElementById('uptimeStat').textContent = data.uptime || '--';
+        document.getElementById('threadsStat').textContent = data.threads || '--';
+        document.getElementById('usersStat').textContent = data.users || '--';
+      })
+      .catch(error => {
+        console.error('Error fetching bot status:', error);
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const statusSubtext = document.getElementById('statusSubtext');
+        const botStatus = document.getElementById('botStatus');
+        
+        statusIndicator.classList.add('offline');
+        statusText.textContent = 'Error';
+        statusSubtext.textContent = 'Unable to connect to bot';
+        botStatus.classList.add('offline');
+      });
+  }
+
+  // Cookie management
+  function setupCookieManagement() {
+    const cookieUploadArea = document.getElementById('cookieUploadArea');
+    const cookieFileInput = document.getElementById('cookieFileInput');
+    const cookieTextarea = document.getElementById('cookieTextarea');
+    const saveCookieBtn = document.getElementById('saveCookieBtn');
+    const clearCookieBtn = document.getElementById('clearCookieBtn');
+    const startBotBtn = document.getElementById('startBotBtn');
+
+    // File upload handling
+    cookieUploadArea.addEventListener('click', () => {
+      cookieFileInput.click();
+    });
+
+    cookieUploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      cookieUploadArea.classList.add('dragover');
+    });
+
+    cookieUploadArea.addEventListener('dragleave', () => {
+      cookieUploadArea.classList.remove('dragover');
+    });
+
+    cookieUploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      cookieUploadArea.classList.remove('dragover');
+      
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleCookieFile(files[0]);
+      }
+    });
+
+    cookieFileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleCookieFile(e.target.files[0]);
+      }
+    });
+
+    function handleCookieFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        cookieTextarea.value = e.target.result;
+        showNotification('Cookie file loaded successfully!', 'success');
+      };
+      reader.readAsText(file);
+    }
+
+    // Save cookie
+    saveCookieBtn.addEventListener('click', () => {
+      const cookieData = cookieTextarea.value.trim();
+      if (!cookieData) {
+        showNotification('Please enter cookie data first!', 'error');
+        return;
+      }
+
+      showLoading('Saving cookie...');
+      
+      fetch('/api/save-cookie', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cookie: cookieData })
+      })
+      .then(response => response.json())
+      .then(data => {
+        hideLoading();
+        if (data.success) {
+          showNotification('Cookie saved successfully!', 'success');
+        } else {
+          showNotification(data.message || 'Failed to save cookie', 'error');
+        }
+      })
+      .catch(error => {
+        hideLoading();
+        console.error('Error saving cookie:', error);
+        showNotification('Error saving cookie', 'error');
+      });
+    });
+
+    // Clear cookie
+    clearCookieBtn.addEventListener('click', () => {
+      cookieTextarea.value = '';
+      showNotification('Cookie data cleared!', 'info');
+    });
+
+    // Start bot
+    startBotBtn.addEventListener('click', () => {
+      showLoading('Starting bot...');
+      
+      fetch('/api/start-bot', {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        hideLoading();
+        if (data.success) {
+          showNotification('Bot started successfully!', 'success');
+          setTimeout(() => {
+            updateBotStatus();
+          }, 2000);
+        } else {
+          showNotification(data.message || 'Failed to start bot', 'error');
+        }
+      })
+      .catch(error => {
+        hideLoading();
+        console.error('Error starting bot:', error);
+        showNotification('Error starting bot', 'error');
+      });
+    });
+  }
+
+  // Quick actions
+  function setupQuickActions() {
+    document.getElementById('restartBotBtn').addEventListener('click', () => {
+      showLoading('Restarting bot...');
+      
+      fetch('/api/restart-bot', {
+        method: 'POST'
+      })
+      .then(response => response.json())
+      .then(data => {
+        hideLoading();
+        if (data.success) {
+          showNotification('Bot restarted successfully!', 'success');
+          setTimeout(() => {
+            updateBotStatus();
+          }, 3000);
+        } else {
+          showNotification(data.message || 'Failed to restart bot', 'error');
+        }
+      })
+      .catch(error => {
+        hideLoading();
+        console.error('Error restarting bot:', error);
+        showNotification('Error restarting bot', 'error');
+      });
+    });
+
+    document.getElementById('stopBotBtn').addEventListener('click', () => {
+      if (confirm('Are you sure you want to stop the bot?')) {
+        showLoading('Stopping bot...');
+        
+        fetch('/api/stop-bot', {
+          method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+          hideLoading();
+          if (data.success) {
+            showNotification('Bot stopped successfully!', 'success');
+            setTimeout(() => {
+              updateBotStatus();
+            }, 1000);
+          } else {
+            showNotification(data.message || 'Failed to stop bot', 'error');
+          }
+        })
+        .catch(error => {
+          hideLoading();
+          console.error('Error stopping bot:', error);
+          showNotification('Error stopping bot', 'error');
+        });
+      }
+    });
+
+    document.getElementById('viewLogsBtn').addEventListener('click', () => {
+      window.open('/api/logs', '_blank');
+    });
+
+    document.getElementById('backupDataBtn').addEventListener('click', () => {
+      showLoading('Creating backup...');
+      
+      fetch('/api/backup-data')
+      .then(response => response.blob())
+      .then(blob => {
+        hideLoading();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `goatbot-backup-${new Date().toISOString().split('T')[0]}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        showNotification('Backup created successfully!', 'success');
+      })
+      .catch(error => {
+        hideLoading();
+        console.error('Error creating backup:', error);
+        showNotification('Error creating backup', 'error');
+      });
+    });
+  }
+
+  // System info
+  function updateSystemInfo() {
+    fetch('/api/system-info')
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('memoryUsage').textContent = data.memory || '--';
+        document.getElementById('cpuUsage').textContent = data.cpu || '--';
+        document.getElementById('nodeVersion').textContent = data.nodeVersion || '--';
+      })
+      .catch(error => {
+        console.error('Error fetching system info:', error);
+      });
+  }
+
+  // Utility functions
+  function showLoading(text = 'Processing...') {
+    document.getElementById('loadingText').textContent = text;
+    document.getElementById('loadingOverlay').style.display = 'flex';
+  }
+
+  function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+
+  function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 10000; min-width: 300px;';
+    notification.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 5000);
+  }
+
+  // Initialize everything
+  document.addEventListener('DOMContentLoaded', function() {
+    createFloatingHearts();
+    setupCookieManagement();
+    setupQuickActions();
+    updateBotStatus();
+    updateSystemInfo();
+    
+    // Update status every 30 seconds
+    setInterval(updateBotStatus, 30000);
+    setInterval(updateSystemInfo, 60000);
+  });
+</script>
+
+<%~ includeFile("partials/footer.eta") %>
