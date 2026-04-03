@@ -345,7 +345,7 @@ module.exports = {
           ctx.closePath();
         };
 
-        // ── 🎨 PREMIUM RANDOM GRADIENTS (সবগুলো ডার্ক হওয়ায় লেখা স্পষ্ট থাকবে) ──
+        // ── 🎨 PREMIUM RANDOM GRADIENTS (সবগুলো ডার্ক হওয়ায় লেখা স্পষ্ট থাকবে) ──
         const gradients = [
           ["#1a1a5e", "#2a1b6e", "#1e1060"], // ১. ডার্ক নেভি ও পার্পল (অরিজিনাল)
           ["#041c10", "#0b3d22", "#020f09"], // ২. ডার্ক এমারেল্ড (অভিজাত জলপাই ভাইব)
@@ -366,7 +366,7 @@ module.exports = {
         roundRect(0, 0, W, H, 30);
         ctx.fill();
 
-        // ── Decorative arc lines (সাদা অপাসিটি দিয়ে যা সব কালারেই ফুটবে) ──
+        // ── Decorative arc lines (সাদা অপাসিটি দিয়ে যা সব কালারেই ফুটবে) ──
         ctx.save();
         for (let i = 0; i < 12; i++) {
           ctx.strokeStyle = `rgba(255,255,255,${(0.03 + i * 0.005).toFixed(3)})`;
@@ -534,10 +534,11 @@ module.exports = {
             investmentLevel: 1
           };
         }
+        
         targetEconomyData.transactions.unshift(receiveTransaction);
-        if (targetEconomyData.transactions.
-unshift(receiveTransaction);
-        if (targetEconomyData.transactions.length > 20) targetEconomyData.transactions.pop();
+        if (targetEconomyData.transactions.length > 20) {
+            targetEconomyData.transactions.pop();
+        }
         await usersData.set(targetID, targetEconomyData.transactions, "data.economy.transactions");
 
         message.reply(getLang("transferSuccess", amount, event.mentions[targetID]));
