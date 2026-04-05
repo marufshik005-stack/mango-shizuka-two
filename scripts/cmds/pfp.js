@@ -1,109 +1,96 @@
 const axios = require("axios");
-const fs = require("fs");
-const fsp = require("fs").promises;
+const fs = require("fs-extra");
 const path = require("path");
 
-module.exports = {
-  config: {
-    name: "pfp",
-    version: "1.0",
-    author: "nexo_here", // Replace with your name
-    countDown: 5, // A short cooldown to prevent spamming
-    role: 0, // 0 = all users, 1 = admin
-    shortDescription: "Fetch Facebook profile picture",
-    longDescription: "Fetches a Facebook profile picture using UID, reply, or mention.",
-    category: "UTILITY",
-    guide: {
-      en: "{pn} | {pn} <UID> | {pn} @mention | {pn} (reply to a message)"
-    }
-  },
-
-  onStart: async function ({ message, args, event }) {
-    let targetUID = event.senderID; // Default to sender's UID if no specific target
-
-    // 1. Get UID from Reply
-    if (event.messageReply) {
-      targetUID = event.messageReply.senderID;
-      console.log(`[PFP_DEBUG] UID from reply: ${targetUID}`);
-    }
-    // 2. Get UID from Mentions
-    else if (Object.keys(event.mentions).length > 0) {
-      targetUID = Object.keys(event.mentions)[0]; // Get the first mentioned user's UID
-      console.log(`[PFP_DEBUG] UID from mention: ${targetUID}`);
-    }
-    // 3. Get UID from direct argument
-    else if (args[0] && !isNaN(args[0])) { // Check if the first arg is a number (UID)
-      targetUID = args[0];
-      console.log(`[PFP_DEBUG] UID from argument: ${targetUID}`);
-    }
-    // If no specific UID is found, it defaults to event.senderID (the user who sent the command)
-
-    if (!targetUID) {
-      console.error("[PFP_DEBUG] No valid UID found from event, args, or reply.");
-      return message.reply("❌ | Could not determine the target user's UID. Please mention, reply, or provide a UID.");
-    }
-
-    const apiUrl = `https://kaiz-apis.gleeze.com/api/facebookpfp?uid=${targetUID}&apikey=66e0cfbb-62b8-4829-90c7-c78cacc72ae2`;
-    console.log(`[PFP_DEBUG] API URL: ${apiUrl}`);
-
-    const waitingMessage = await message.reply(`⏳ | Fetching profile picture for UID: ${targetUID}`);
-    console.log("[PFP_DEBUG] Sent waiting message.");
-
-    let tempImagePath = null;
-
-    try {
-      const apiResponse = await axios.get(apiUrl, { responseType: 'arraybuffer' }); // Expecting image directly
-      const imageBuffer = Buffer.from(apiResponse.data);
-      console.log("[PFP_DEBUG] Image downloaded as buffer from API.");
-
-      const timestamp = Date.now();
-      // Use .jpg extension as common PFP format, though the API might return other formats
-      tempImagePath = path.join(__dirname, `pfp_${targetUID}_${timestamp}.jpg`); 
-      await fsp.writeFile(tempImagePath, imageBuffer);
-      console.log(`[PFP_DEBUG] Image saved to temporary file: ${tempImagePath}`);
-
-      await message.reply({
-        body: `✅ | Here is the profile picture for UID: ${targetUID}`,
-        attachment: fs.createReadStream(tempImagePath)
-      });
-      console.log("[PFP_DEBUG] Image sent successfully from temporary file.");
-
-    } catch (error) {
-      console.error("[PFP_DEBUG] Error fetching or sending PFP:", error);
-
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          console.error(`[PFP_DEBUG] Axios Error - Status: ${error.response.status}, Data: ${JSON.stringify(error.response.data)}`);
-          if (error.response.status === 400 || error.response.status === 404) {
-            return message.reply(`❌ | Could not find a profile picture for UID: ${targetUID}. Please check the UID or try again.`);
-          } else if (error.response.status === 401 || error.response.status === 403) {
-            return message.reply("❌ | API Key unauthorized or invalid. Please check the API key.");
-          } else if (error.response.status === 429) {
-            return message.reply("❌ | API rate limit exceeded. Please try again later.");
-          } else {
-            return message.reply(`❌ | Failed to fetch profile picture. API returned status: ${error.response.status}.`);
-          }
-        } else if (error.request) {
-          console.error("[PFP_DEBUG] Axios Error - No response received:", error.request);
-          return message.reply("❌ | Failed to fetch profile picture. No response received from API.");
-        } else {
-          console.error("[PFP_DEBUG] Axios Error - Request setup failed:", error.message);
-          return message.reply("❌ | Failed to fetch profile picture. An internal error occurred.");
-        }
-      } else {
-        console.error("[PFP_DEBUG] Non-Axios Error:", error.message);
-        return message.reply("❌ | Failed to fetch profile picture. An unexpected error occurred.");
-      }
-    } finally {
-      if (tempImagePath) {
-        try {
-          await fsp.unlink(tempImagePath);
-          console.log(`[PFP_DEBUG] Cleaned up temporary file: ${tempImagePath}`);
-        } catch (fileError) {
-          console.error(`[PFP_DEBUG] Error cleaning up temporary file ${tempImagePath}:`, fileError);
-        }
-      }
-      console.log("[PFP_DEBUG] Command execution finished.");
-    }
-  }
+const baseApiUrl = async () => {
+  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
+  return base.data.mahmud;
 };
+
+module.exports = {
+        config: {
+                name: "profile",
+                aliases: ["pp", "dp", "pfp"],
+                version: "1.1",
+                author: "MahMUD",
+                countDown: 5,
+                role: 0,
+                description: {
+                        bn: "ব্যবহারকারীর প্রোফাইল পিকচার ডাউনলোড করুন",
+                        en: "Fetch user's profile picture"
+                },
+                category: "utility",
+                guide: {
+                        bn: '   {pn}: আপনার নিজের প্রোফাইল পিকচার দেখুন'
+                                + '\n   {pn} <@tag>: ট্যাগ করা ব্যক্তির প্রোফাইল পিকচার দেখুন'
+                                + '\n   {pn} <uid>: UID এর মাধ্যমে প্রোফাইল পিকচার দেখুন'
+                                + '\n   {pn} <profile_link>: ফেসবুক প্রোফাইল লিংকের মাধ্যমে ছবি দেখুন'
+                                + '\n   (অথবা কারো মেসেজে রিপ্লাই দিয়ে এটি ব্যবহার করুন)',
+                        en: '   {pn}: Fetch your profile picture'
+                                + '\n   {pn} <@tag>: Fetch tagged user\'s profile picture'
+                                + '\n   {pn} <uid>: Fetch profile picture from UID'
+                                + '\n   {pn} <profile_link>: Fetch profile picture from profile link'
+                                + '\n   (Or reply to someone\'s message)'
+                }
+        },
+
+        langs: {
+                bn: {
+                        success: ">🎀 %1\nবেবি, এই নাও তোমার প্রোফাইল 😘",
+                        error: "× প্রোফাইল পিকচার আনতে সমস্যা হয়েছে, Contact MahMUD %1",
+                        invalidUID: "! সঠিক UID বা লিংক প্রদান করুন"
+                },
+                en: {
+                        success: ">🎀 %1\n𝐁𝐚𝐛𝐲, 𝐇𝐞𝐫𝐞'𝐬 𝐲𝐨𝐮𝐫 𝐩𝐫𝐨𝐟𝐢𝐥𝐞 😘",
+                        error: "× Could not fetch profile picture, Contact MahMUD %1",
+                        invalidUID: "! Invalid UID"
+                }
+        },
+
+        onStart: async function ({ api, message, args, event, getLang, usersData }) {
+                     const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68);
+                        if (this.config.author !== authorName) {
+                        return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);}
+          
+                       try {
+                        let uid = event.senderID;
+                        
+                        if (event.messageReply) {
+                                uid = event.messageReply.senderID;
+                        } else if (Object.keys(event.mentions).length > 0) {
+                                uid = Object.keys(event.mentions)[0];
+                        } else if (args[0]) {
+                                if (!isNaN(args[0])) {
+                                        uid = args[0];
+                                } else if (args[0].includes("facebook.com/")) {
+                                        const match = args[0].match(/(?:profile\.php\?id=|\/)([\d]+)/);
+                                        if (match) uid = match[1];
+                                }
+                        }
+                        
+                        if (!uid || isNaN(uid))
+                                return message.reply(getLang("invalidUID"));
+                        
+                        const baseUrl = await baseApiUrl();
+                        const avatarURL = `${baseUrl}/api/pfp?mahmud=${uid}`;
+                        const userName = await usersData.getName(uid);
+                        
+                        const cachePath = path.join(__dirname, "cache", `pfp_${uid}.jpg`);
+                        await fs.ensureDir(path.dirname(cachePath));
+                        
+                        const response = await axios.get(avatarURL, { responseType: "arraybuffer" });
+                        await fs.writeFile(cachePath, Buffer.from(response.data));
+                       
+                        await message.reply({
+                                body: getLang("success", userName),
+                                attachment: fs.createReadStream(cachePath)
+                        });
+                        
+                        await fs.remove(cachePath);
+                } catch (err) {
+                        console.error("Error in pfp command:", err);
+                        return message.reply(getLang("error", err.message));
+                }
+        }
+};
+
