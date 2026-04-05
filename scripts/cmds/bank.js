@@ -144,7 +144,7 @@ module.exports = {
     name: "bank",
     aliases: ["b"],
     version: "1.2", 
-    author: "𝐙ɪsᴀ𝐍",
+    author: "𝐙ɪs𝐀𝐍",
     countDown: 5,
     role: 0,
     description: {
@@ -153,16 +153,16 @@ module.exports = {
     },
     category: "economy",
     guide: {
-      vi: "   {pn} deposit <số tiền>: Gửi tiền vào ngân hàng"
-        + "\n   {pn} withdraw <số tiền>: Rút tiền từ ngân hàng"
-        + "\n   {pn} balance: Xem số dư ngân hàng"
-        + "\n   {pn} transfer <@tag> <số tiền>: Chuyển tiền cho người khác"
-        + "\n   {pn} history: Xem lịch sử giao dịch",
-      en: "   {pn} deposit <amount>: Deposit money to bank"
-        + "\n   {pn} withdraw <amount>: Withdraw money from bank"
-        + "\n   {pn} balance: View bank balance"
-        + "\n   {pn} transfer <@tag> <amount>: Transfer money to someone"
-        + "\n   {pn} history: View transaction history"
+      vi: "    {pn} deposit <số tiền>: Gửi tiền vào ngân hàng"
+        + "\n    {pn} withdraw <số tiền>: Rút tiền từ ngân hàng"
+        + "\n    {pn} balance: Xem số dư ngân hàng"
+        + "\n    {pn} transfer <@tag> <số tiền>: Chuyển tiền cho người khác"
+        + "\n    {pn} history: Xem lịch sử giao dịch",
+      en: "    {pn} deposit <amount>: Deposit money to bank"
+        + "\n    {pn} withdraw <amount>: Withdraw money from bank"
+        + "\n    {pn} balance: View bank balance"
+        + "\n    {pn} transfer <@tag> <amount>: Transfer money to someone"
+        + "\n    {pn} history: View transaction history"
     }
   },
 
@@ -215,6 +215,25 @@ module.exports = {
     const { senderID } = event;
     const action = args[0]?.toLowerCase();
 
+    // Helper function to parse amounts like 1k, 1m, 1b
+    const parseAmount = (input) => {
+      if (!input) return NaN;
+      const regex = /^([\d.]+)\s*([kKmMbBtT]?)$/;
+      const match = String(input).match(regex);
+      if (!match) return NaN;
+
+      let num = parseFloat(match[1]);
+      const unit = match[2].toLowerCase();
+
+      switch (unit) {
+        case 'k': num *= 1000; break;
+        case 'm': num *= 1000000; break;
+        case 'b': num *= 1000000000; break;
+        case 't': num *= 1000000000000; break;
+      }
+      return Math.floor(num);
+    };
+
     let economyData = await usersData.get(senderID, "data.economy");
     if (!economyData) {
       economyData = {
@@ -233,8 +252,8 @@ module.exports = {
     switch (action) {
       case "deposit":
       case "d": {
-        const amount = parseInt(args[1]);
-        if (!amount || amount <= 0) {
+        const amount = parseAmount(args[1]);
+        if (isNaN(amount) || amount <= 0) {
           return message.reply(getLang("invalidAmount"));
         }
         if (amount > userMoney) {
@@ -278,8 +297,8 @@ module.exports = {
 
       case "withdraw":
       case "w": {
-        const amount = parseInt(args[1]);
-        if (!amount || amount <= 0) {
+        const amount = parseAmount(args[1]);
+        if (isNaN(amount) || amount <= 0) {
           return message.reply(getLang("invalidAmount"));
         }
         if (amount > economyData.bankBalance) {
@@ -321,19 +340,15 @@ module.exports = {
         break;
       }
 
-      // ==========================================
-      // 🌟 UPGRADED PREMIUM VISA CARD SECTION 🌟
-      // ==========================================
       case "balance":
       case "b": {
         const bankBal = economyData.bankBalance;
 
-        // Visa card dimensions (credit-card ratio ~1.586)
+        // Visa card logic remains the same
         const W = 900, H = 567;
         const canvas = createCanvas(W, H);
         const ctx = canvas.getContext("2d");
 
-        // Helper: draw rounded-rect path
         const roundRect = (x, y, w, h, r) => {
           ctx.beginPath();
           ctx.moveTo(x + r, y);
@@ -348,19 +363,18 @@ module.exports = {
           ctx.closePath();
         };
 
-        // 🎨 EXPANDED PREMIUM GRADIENTS (Originals + 1 Black + 5 Neutrals)
         const gradients = [
-          ["#141414", "#292929", "#0a0a0a"], // 1. Carbon Black
-          ["#30030c", "#5c0b1b", "#1a0105"], // 2. Burgundy Wine
-          ["#0a1d33", "#13355c", "#05111f"], // 3. Ocean Blue
-          ["#041c10", "#0b3d22", "#020f09"], // 4. Emerald Green
-          ["#4d0012", "#a6113b", "#29000a"], // 5. Rose Gold
-          ["#050505", "#1c1c1c", "#000000"], // 6. Pure Onyx Black (NEW)
-          ["#424245", "#6c6c70", "#2b2b2d"], // 7. Titanium Grey (NEW - Neutral)
-          ["#8a8a8a", "#b5b5b5", "#636363"], // 8. Platinum Silver (NEW - Neutral)
-          ["#635d55", "#968e83", "#403b35"], // 9. Champagne Taupe (NEW - Neutral)
-          ["#24262b", "#474b54", "#15161a"], // 10. Slate Blue-Grey (NEW - Neutral)
-          ["#21201d", "#403d37", "#12110f"]  // 11. Obsidian Brown (NEW - Neutral)
+          ["#141414", "#292929", "#0a0a0a"], 
+          ["#30030c", "#5c0b1b", "#1a0105"], 
+          ["#0a1d33", "#13355c", "#05111f"], 
+          ["#041c10", "#0b3d22", "#020f09"], 
+          ["#4d0012", "#a6113b", "#29000a"], 
+          ["#050505", "#1c1c1c", "#000000"],
+          ["#424245", "#6c6c70", "#2b2b2d"],
+          ["#8a8a8a", "#b5b5b5", "#636363"],
+          ["#635d55", "#968e83", "#403b35"],
+          ["#24262b", "#474b54", "#15161a"],
+          ["#21201d", "#403d37", "#12110f"] 
         ];
         
         const randomGrad = gradients[Math.floor(Math.random() * gradients.length)];
@@ -372,7 +386,6 @@ module.exports = {
         roundRect(0, 0, W, H, 30);
         ctx.fill();
 
-        // ✨ Metallic Lighting Overlay (Adds premium glass/sheen texture)
         const metallicGlow = ctx.createLinearGradient(0, 0, W, H);
         metallicGlow.addColorStop(0, "rgba(255,255,255,0.18)");
         metallicGlow.addColorStop(0.3, "rgba(255,255,255,0.0)");
@@ -382,7 +395,6 @@ module.exports = {
         roundRect(0, 0, W, H, 30);
         ctx.fill();
 
-        // 🌐 Decorative subtle background arcs (Network/Globe feel)
         ctx.save();
         for (let i = 0; i < 8; i++) {
           ctx.strokeStyle = `rgba(255,255,255,${(0.02 + i * 0.005).toFixed(3)})`;
@@ -393,13 +405,11 @@ module.exports = {
         }
         ctx.restore();
 
-        // 🏦 BANK LOGO (top-left)
         ctx.fillStyle = "#ffffff";
         ctx.font = "bold 32px Arial";
         ctx.textAlign = "left";
         ctx.fillText("SHI BANK LTD.", 50, 60);
 
-        // 💳 VISA Logo (top-right)
         ctx.shadowColor = "rgba(0,0,0,0.3)";
         ctx.shadowBlur = 4;
         ctx.shadowOffsetY = 2;
@@ -407,17 +417,15 @@ module.exports = {
         ctx.font = "bold italic 56px serif";
         ctx.textAlign = "right";
         ctx.fillText("VISA", W - 50, 70);
-        ctx.shadowColor = "transparent"; // reset shadow
+        ctx.shadowColor = "transparent"; 
         ctx.textAlign = "left";
 
-        // 🛡️ EMV SMART CHIP (Middle Left)
         const chipX = 50, chipY = 140;
-        ctx.fillStyle = "#d4af37"; // Metallic Gold
+        ctx.fillStyle = "#d4af37"; 
         roundRect(chipX, chipY, 70, 50, 8);
         ctx.fill();
-        ctx.strokeStyle = "#aa8222"; // Darker gold for lines
+        ctx.strokeStyle = "#aa8222"; 
         ctx.lineWidth = 1.5;
-        // Draw inner chip contacts
         ctx.beginPath();
         ctx.moveTo(chipX + 22, chipY); ctx.lineTo(chipX + 22, chipY + 50);
         ctx.moveTo(chipX + 48, chipY); ctx.lineTo(chipX + 48, chipY + 50);
@@ -427,7 +435,6 @@ module.exports = {
         ctx.moveTo(chipX + 48, chipY + 34); ctx.lineTo(chipX + 70, chipY + 34);
         ctx.stroke();
 
-        // 🛜 CONTACTLESS SYMBOL (Next to Chip)
         const cxIcon = chipX + 110, cyIcon = chipY + 25;
         ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
         ctx.lineWidth = 3.5;
@@ -438,20 +445,18 @@ module.exports = {
           ctx.stroke();
         }
 
-        // 👤 PROFILE PICTURE (Top-Right Area, ID style)
         const avatarCX = W - 110, avatarCY = 180, avatarCR = 55;
         try {
           const avatarUrl = await usersData.getAvatarUrl(senderID);
           const avatar = await loadImage(avatarUrl);
           ctx.save();
-          // Drop shadow for avatar
           ctx.shadowColor = "rgba(0,0,0,0.5)";
           ctx.shadowBlur = 10;
           ctx.shadowOffsetY = 5;
           ctx.beginPath();
           ctx.arc(avatarCX, avatarCY, avatarCR, 0, Math.PI * 2);
           ctx.closePath();
-          ctx.fill(); // Fill shadow
+          ctx.fill(); 
           ctx.clip();
           ctx.drawImage(avatar, avatarCX - avatarCR, avatarCY - avatarCR, avatarCR * 2, avatarCR * 2);
           ctx.restore();
@@ -461,14 +466,12 @@ module.exports = {
           ctx.arc(avatarCX, avatarCY, avatarCR, 0, Math.PI * 2);
           ctx.fill();
         }
-        // Elegant silver/cyan ring around avatar
         ctx.strokeStyle = "rgba(255, 255, 255, 0.6)"; 
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(avatarCX, avatarCY, avatarCR + 2, 0, Math.PI * 2);
         ctx.stroke();
 
-        // 💵 BALANCE SECTION (Embossed Text Effect)
         ctx.fillStyle = "rgba(255,255,255,0.7)";
         ctx.font = "600 16px Arial";
         ctx.fillText("AVAILABLE BALANCE", 50, 260);
@@ -477,7 +480,7 @@ module.exports = {
           const units = ["", "K", "M", "B", "T", "Q"];
           let unit = 0, n = Number(num);
           while (n >= 1000 && unit < units.length - 1) { n /= 1000; unit++; }
-          return `${n.toFixed(2)}${units[unit]}`;
+          return `${parseFloat(n.toFixed(2))}${units[unit]}`;
         };
         
         ctx.shadowColor = "rgba(0,0,0,0.4)";
@@ -487,21 +490,18 @@ module.exports = {
         ctx.font = "bold 64px Arial";
         ctx.fillText(`$${fmtBal(bankBal)}`, 46, 335);
 
-        // 🔢 CARD NUMBER (Embossed Monospace)
         const uid16 = String(senderID).replace(/\D/g, "").padStart(16, "0").slice(-16);
         const cardNum = `${uid16.slice(0,4)}  ${uid16.slice(4,8)}  ${uid16.slice(8,12)}  ${uid16.slice(12,16)}`;
         ctx.fillStyle = "rgba(255,255,255,0.95)";
         ctx.font = "bold 36px \"Courier New\", monospace";
         ctx.fillText(cardNum, 50, 420);
-        ctx.shadowColor = "transparent"; // Reset shadows for smaller text
+        ctx.shadowColor = "transparent"; 
 
-        // 👤 CARDHOLDER NAME & 📅 EXPIRY
         const holderName = (await usersData.getName(senderID) || "CARD HOLDER").toUpperCase();
         const now = new Date();
         const expMM = String(now.getMonth() + 1).padStart(2, "0");
         const expYY = String(now.getFullYear() + 4).slice(-2);
 
-        // Name
         ctx.fillStyle = "rgba(255,255,255,0.6)";
         ctx.font = "14px Arial";
         ctx.fillText("CARDHOLDER", 50, 480);
@@ -509,7 +509,6 @@ module.exports = {
         ctx.font = "bold 24px Arial";
         ctx.fillText(holderName, 50, 510);
 
-        // Expiry
         ctx.fillStyle = "rgba(255,255,255,0.6)";
         ctx.font = "14px Arial";
         ctx.fillText("VALID THRU", 380, 480);
@@ -517,7 +516,6 @@ module.exports = {
         ctx.font = "bold 24px Arial";
         ctx.fillText(`${expMM}/${expYY}`, 380, 510);
 
-        // Save & send
         const outPath = path.join(__dirname, "cache", `bank_visa_${senderID}.png`);
         await fs.ensureDir(path.dirname(outPath));
         await fs.writeFile(outPath, canvas.toBuffer("image/png"));
@@ -526,7 +524,6 @@ module.exports = {
 
         break;
       }
-      // ==========================================
 
       case "transfer":
       case "t": {
@@ -534,8 +531,8 @@ module.exports = {
           return message.reply(getLang("missingTarget"));
         }
 
-        const amount = parseInt(args[2]);
-        if (!amount || amount <= 0) {
+        const amount = parseAmount(args[2]);
+        if (isNaN(amount) || amount <= 0) {
           return message.reply(getLang("invalidAmount"));
         }
 
