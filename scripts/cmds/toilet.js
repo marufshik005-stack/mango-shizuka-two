@@ -1,50 +1,91 @@
-const axios = require('axios');
-const jimp = require("jimp");
-const fs = require("fs")
+const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
 
-
-module.exports = {
- config: {
- name: "toilet",
- aliases: ["toilet"],
- version: "1.0",
- author: "Upen Basnet",
- countDown: 5,
- role: 0,
- shortDescription: "face on toilet",
- longDescription: "",
- category: "fun",
- guide: "{pn}"
- },
-
-
-
- onStart: async function ({ message, event, args }) {
- const mention = Object.keys(event.mentions);
- if (mention.length == 0) return message.reply("Please mention someone");
- else if (mention.length == 1) {
- const one = event.senderID, two = mention[0];
- bal(one, two).then(ptth => { message.reply({ body: "You Deserve This Place🤣", attachment: fs.createReadStream(ptth) }) })
- } else {
- const one = mention[1], two = mention[0];
- bal(one, two).then(ptth => { message.reply({ body: "You Deserve This Place🤣", attachment: fs.createReadStream(ptth) }) })
- }
- }
-
-
+const baseApiUrl = async () => {
+        const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
+        return base.data.mahmud;
 };
 
-async function bal(one, two) {
+module.exports = {
+        config: {
+                name: "toilet",
+                version: "1.7",
+                author: "MahMUD",
+                countDown: 10,
+                role: 0,
+                description: {
+                        bn: "কাউকে টয়লেট প্যানে বসানোর ছবি তৈরি করুন",
+                        en: "Create a toilet prank image of someone"
+                },
+                category: "fun",
+                guide: {
+                        bn: '   {pn} <@tag>: কাউকে ট্যাগ করে টয়লেটে বসান'
+                                + '\n   {pn} <uid>: UID দিয়ে ছবি তৈরি করুন'
+                                + '\n   (অথবা কারো মেসেজে রিপ্লাই দিয়ে এটি ব্যবহার করুন)',
+                        en: '   {pn} <@tag>: Make someone on a toilet seat'
+                                + '\n   {pn} <uid>: Create using UID'
+                                + '\n   (Or reply to someone\'s message)'
+                }
+        },
 
- let avone = await jimp.read(`https://graph.facebook.com/${one}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`)
- avone.circle()
- let avtwo = await jimp.read(`https://graph.facebook.com/${two}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`)
- avtwo.circle()
- let pth = "toilet.png"
- let img = await jimp.read("https://i.imgur.com/sZW2vlz.png")
+        langs: {
+                bn: {
+                        noTarget: "× বেবি, কাকে টয়লেটে বসাবে তাকে মেনশন দাও বা রিপ্লাই করো! 🚽",
+                        success: "এই নাও তোমার টয়লেট ইমেজ 🐸",
+                        error: "× ছবি তৈরি করতে সমস্যা হয়েছে: %1। প্রয়োজনে Contact MahMUD।"
+                },
+                en: {
+                        noTarget: "× Baby, mention or reply to someone to make a toilet image! 🚽",
+                        success: "Here's your toilet image 🐸",
+                        error: "× Failed to create image: %1. Contact MahMUD for help."
+                }
+        },
 
- img.resize(1080, 1350).composite(avone.resize(360, 360), 8828282, 2828).composite(avtwo.resize(450, 450), 300, 660);
+        onStart: async function ({ api, message, args, event, getLang }) {
+                const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68);
+                if (this.config.author !== authorName) {
+                        return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);
+                }
 
- await img.writeAsync(pth)
- return pth
-   }
+                const { mentions, messageReply } = event;
+                let id;
+
+                if (Object.keys(mentions).length > 0) {
+                        id = Object.keys(mentions)[0];
+                } else if (messageReply) {
+                        id = messageReply.senderID;
+                } else if (args[0] && !isNaN(args[0])) {
+                        id = args[0];
+                }
+
+                if (!id) return message.reply(getLang("noTarget"));
+
+                const cacheDir = path.join(__dirname, "cache");
+                const filePath = path.join(cacheDir, `toilet_${id}.png`);
+
+                try {
+                        if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
+
+                        const apiUrl = await baseApiUrl();
+                        const url = `${apiUrl}/api/toilet?user=${id}`;
+
+                        const response = await axios.get(url, { responseType: "arraybuffer" });
+                        fs.writeFileSync(filePath, Buffer.from(response.data));
+
+                        await message.reply({
+                                body: getLang("success"),
+                                attachment: fs.createReadStream(filePath)
+                        });
+
+                        setTimeout(() => {
+                                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                        }, 5000);
+
+                } catch (err) {
+                        console.error("Error in toilet command:", err);
+                        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                        return message.reply(getLang("error", err.message));
+                }
+        }
+};
