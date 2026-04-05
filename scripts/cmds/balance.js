@@ -5,7 +5,7 @@ module.exports = {
         name: "balance",
         aliases: ["bal", "money"],
         version: "1.6.9",
-        author: "Nazrul",
+        author: "zisan",
         countDown: 1,
         role: 0,
         description: "View, transfer, request, or add/delete money",
@@ -24,6 +24,15 @@ module.exports = {
         const senderID = event.senderID;
         const allowedUIDs = [config.adminBot, ...config.adminBot];
 
+        // Bold text converter map
+        const boldMap = {
+            A: "𝐀", B: "𝐁", C: "𝐂", D: "𝐃", E: "𝐄", F: "𝐅", G: "𝐆", H: "𝐇", I: "𝐈", J: "𝐉", K: "𝐊", L: "𝐋", M: "𝐌", N: "𝐍", O: "𝐎", P: "𝐏", Q: "𝐐", R: "𝐑", S: "𝐒", T: "𝐓", U: "𝐔", V: "𝐕", W: "𝐖", X: "𝐗", Y: "𝐘", Z: "𝐙",
+            a: "𝐚", b: "𝐛", c: "𝐜", d: "𝐝", e: "𝐞", f: "𝐟", g: "𝐠", h: "𝐡", i: "𝐢", j: "𝐣", k: "𝐤", l: "𝐥", m: "𝐦", n: "𝐧", o: "𝐨", p: "𝐩", q: "𝐪", r: "𝐫", s: "𝐬", t: "𝐭", u: "𝐮", v: "𝐯", w: "𝐰", x: "𝐱", y: "𝐲", z: "𝐳",
+            0: "𝟎", 1: "𝟏", 2: "𝟐", 3: "𝟑", 4: "𝟒", 5: "𝟓", 6: "𝟔", 7: "𝟕", 8: "𝟖", 9: "𝟗", ".": "."
+        };
+        
+        const toBold = (text) => text.split("").map(char => boldMap[char] || char).join("");
+
         const formatMoney = (num) => {
             const units = ["", "K", "M", "B", "T", "Q", "Qi", "Sx", "Sp", "Oc", "N", "D"];
             let unit = 0;
@@ -34,7 +43,8 @@ module.exports = {
                 unit++;
             }
 
-            return `${number.toFixed(2)}${units[unit]}`;
+            // parseFloat removes trailing zeros (e.g., 43.80 becomes 43.8)
+            return `${parseFloat(number.toFixed(2))}${units[unit]}`;
         };
 
         const isValidAmount = (value) => {
@@ -173,6 +183,7 @@ module.exports = {
             return message.reply(`✅ Your request for ${formatMoney(amount)}$ has been sent to the admins.`);
         }
 
+        // Check someone else's balance
         if (Object.keys(event.mentions).length > 0 || event.messageReply || !isNaN(args[0])) {
             const targetUID = getTargetUID();
 
@@ -184,12 +195,13 @@ module.exports = {
             const userName = userData.name || "Unknown User";
             const userMoney = userData.money || "0";
 
-            return message.reply(`💰 ${userName} (UID: ${targetUID}) has ${formatMoney(userMoney)}$ (${userMoney}$).`);
+            return message.reply(`🎀 ${toBold(userName.toUpperCase())}\n\n𝐔𝐬𝐞𝐫 𝐛𝐚𝐥𝐚𝐧𝐜𝐞: $${toBold(formatMoney(userMoney))}`);
         }
 
+        // Check own balance (Default)
         const userData = await usersData.get(senderID) || { money: "0", name: "Unknown User" };
         const userName = userData.name || "Unknown User";
 
-        return message.reply(`💸 ${userName}, you have ${formatMoney(userData.money)}$ (${userData.money}$).`);
+        return message.reply(`🎀 ${toBold(userName.toUpperCase())}\n\n𝐁𝐚𝐛𝐲, 𝐘𝐨𝐮𝐫 𝐛𝐚𝐥𝐚𝐧𝐜𝐞: $${toBold(formatMoney(userData.money))}`);
     }
 };
