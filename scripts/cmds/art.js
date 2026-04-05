@@ -10,7 +10,7 @@ const isAdmin = global.GoatBot.config.adminBot.includes(event.senderID);
 const isVip = isAdmin || (vipData[event.senderID] && vipData[event.senderID].expiry > Date.now());
 
 if (!isVip) {
-    return message.reply("👑 𝗩𝗜𝗣 𝗢𝗡𝗟𝗬!\nThis is a premium feature. Please buy a VIP card to use this command.\nType: /vip buy");
+    return message.reply("👑 𝗩𝗜𝗣 𝗢𝗡𝗟𝗬!\nThis is a premium feature.\nType: /vip buy");
 }
 
 const baseApiUrl = async () => {
