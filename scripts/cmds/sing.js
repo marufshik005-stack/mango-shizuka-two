@@ -1,138 +1,81 @@
 const axios = require("axios");
-const fs = require('fs');
-const baseApiUrl = async () => {
-  const base = await axios.get(`https://raw.githubusercontent.com/Mostakim0978/D1PT0/refs/heads/main/baseApiUrl.json`);
-  return base.data.api;
+
+const mahmud = async () => {
+        const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
+        return base.data.mahmud;
 };
 
 module.exports = {
-  config: {
-    name: "sing",
-    version: "1.1.5",
-    aliases: ["music", "play"],
-    author: "dipto",
-    countDown: 5,
-    role: 0,
-    noPrefix: true,
-    description: {
-      en: "Download audio from YouTube"
-    },
-    category: "media",
-    guide: {
-      en: "{pn} [<song name>|<song link>]\nExample:\n{pn} chipi chipi chapa chapa"
-    }
-  },
+        config: {
+                name: "sing",
+                version: "1.7",
+                author: "MahMUD",
+                countDown: 10,
+                role: 0,
+                description: {
+                        bn: "যেকোনো গান সার্চ করে অডিও ফাইল ডাউনলোড করুন",
+                        en: "Search and download any song as an audio file",
+                        vi: "Tìm kiếm và tải xuống bất kỳ bài hát nào dưới dạng tệp âm thanh"
+                },
+                category: "music",
+                guide: {
+                        bn: '   {pn} <গানের নাম>: গান ডাউনলোড করতে নাম লিখুন',
+                        en: '   {pn} <song name>: Enter song name to download',
+                        vi: '   {pn} <tên bài hát>: Nhập tên bài hát để tải xuống'
+                }
+        },
 
-  onStart: async ({ api, args, event, commandName, message }) => {
-    const checkurl = /^(?:https?:\/\/)?(?:m\.|www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))((\w|-){11})(?:\S+)?$/;
-    let videoID;
-    const urlYtb = checkurl.test(args[0]);
+        langs: {
+                bn: {
+                        noInput: "× বেবি, গানের নাম তো দাও! 🎵\nউদাহরণ: {pn} shape of you",
+                        success: "✅ | এই নাও তোমার গান বেবি <😘\n• 𝐒𝐨𝐧𝐠: %1",
+                        error: "× সমস্যা হয়েছে: %1। প্রয়োজনে Contact MahMUD।"
+                },
+                en: {
+                        noInput: "× Baby, please provide a song name! 🎵\nExample: {pn} shape of you",
+                        success: "✅ | Here's your requested song baby <😘\n• 𝐒𝐨𝐧𝐠: %1",
+                        error: "× API error: %1. Contact MahMUD for help."
+                },
+                vi: {
+                        noInput: "× Cưng ơi, vui lòng cung cấp tên bài hát! 🎵\nVí dụ: {pn} shape of you",
+                        success: "✅ | Bài hát của cưng đây <😘\n• 𝐁𝐚̀𝐢 𝐡𝐚́𝐭: %1",
+                        error: "× Lỗi: %1. Liên hệ MahMUD để hỗ trợ."
+                }
+        },
 
-    if (urlYtb) {
-      const match = args[0].match(checkurl);
-      videoID = match ? match[1] : null;
-      const { data: { title, downloadLink } } = await axios.get(`${await baseApiUrl()}/ytDl3?link=${videoID}&format=mp3`);
-      return api.sendMessage({
-        body: title,
-        attachment: await dipto(downloadLink, 'audio.mp3')
-      }, event.threadID, () => fs.unlinkSync('audio.mp3'), event.messageID);
-    }
+        onStart: async function ({ api, event, args, message, getLang }) {
+                const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68);
+                if (this.config.author !== authorName) {
+                        return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);
+                }
 
-    let keyWord = args.join(" ");
-    keyWord = keyWord.includes("?feature=share") ? keyWord.replace("?feature=share", "") : keyWord;
-    const maxResults = 6;
-    let result;
-    try {
-      result = ((await axios.get(`${await baseApiUrl()}/ytFullSearch?songName=${keyWord}`)).data).slice(0, maxResults);
-    } catch (err) {
-      return api.sendMessage("❌ An error occurred: " + err.message, event.threadID, event.messageID);
-    }
-    if (result.length == 0)
-      return api.sendMessage("⭕ No search results match the keyword: " + keyWord, event.threadID, event.messageID);
+                const query = args.join(" ");
+                if (!query) return message.reply(getLang("noInput"));
 
-    let msg = "";
-    let i = 1;
-    const thumbnails = [];
-    for (const info of result) {
-      thumbnails.push(diptoSt(info.thumbnail, 'photo.jpg'));
-      msg += `${i++}. ${info.title}\nTime: ${info.time}\nChannel: ${info.channel.name}\n\n`;
-    }
-    api.sendMessage({
-      body: msg + "Reply to this message with a number to listen.",
-      attachment: await Promise.all(thumbnails)
-    }, event.threadID, (err, info) => {
-      global.GoatBot.onReply.set(info.messageID, {
-        commandName,
-        messageID: info.messageID,
-        author: event.senderID,
-        result
-      });
-    }, event.messageID);
-  },
+                try {
+                        api.setMessageReaction("⌛", event.messageID, () => {}, true);
 
-  onReply: async ({ event, api, Reply }) => {
-    try {
-      const { result } = Reply;
-      const choice = parseInt(event.body);
-      if (!isNaN(choice) && choice <= result.length && choice > 0) {
-        const infoChoice = result[choice - 1];
-        const idvideo = infoChoice.id;
-        const { data: { title, downloadLink, quality } } = await axios.get(`${await baseApiUrl()}/ytDl3?link=${idvideo}&format=mp3`);
-        await api.unsendMessage(Reply.messageID);
-        await api.sendMessage({
-          body: `• Title: ${title}\n• Quality: ${quality}`,
-          attachment: await dipto(downloadLink, 'audio.mp3')
-        }, event.threadID, () => fs.unlinkSync('audio.mp3'), event.messageID);
-      } else {
-        api.sendMessage("Invalid choice. Please enter a number between 1 and 6.", event.threadID, event.messageID);
-      }
-    } catch (error) {
-      console.log(error);
-      api.sendMessage("⭕ Sorry, audio size may be larger than allowed.\n", event.threadID, event.messageID);
-    }
-  },
+                        const baseUrl = await mahmud();
+                        const apiUrl = `${baseUrl}/api/song/mahmud?query=${encodeURIComponent(query)}`;
 
-  onChat: async function ({ event, message, api, commandName }) {
-    const body = event.body?.toLowerCase();
-    const triggers = ["sing", "music", "play"];
+                        const response = await axios({
+                                method: "GET",
+                                url: apiUrl,
+                                responseType: "stream"
+                        });
 
-    if (body && triggers.some(trigger => body.startsWith(trigger))) {
-      const slicedArgs = body.split(" ").slice(1);
-      event.body = slicedArgs.join(" ");
-      await module.exports.onStart({
-        api,
-        args: slicedArgs,
-        event,
-        commandName,
-        message
-      });
-    }
-  }
+                        return message.reply({
+                                body: getLang("success", query),
+                                attachment: response.data
+                        }, () => {
+                                api.setMessageReaction("🪽", event.messageID, () => {}, true);
+                        });
+
+                } catch (err) {
+                        console.error("Sing Error:", err);
+                        api.setMessageReaction("❌", event.messageID, () => {}, true);
+                        return message.reply(getLang("error", err.message));
+                }
+        }
 };
 
-async function dipto(url, pathName) {
-  try {
-    const response = (await axios.get(url, {
-      responseType: "arraybuffer"
-    })).data;
-
-    fs.writeFileSync(pathName, Buffer.from(response));
-    return fs.createReadStream(pathName);
-  }
-  catch (err) {
-    throw err;
-  }
-}
-
-async function diptoSt(url, pathName) {
-  try {
-    const response = await axios.get(url, {
-      responseType: "stream"
-    });
-    response.data.path = pathName;
-    return response.data;
-  }
-  catch (err) {
-    throw err;
-  }
-}
