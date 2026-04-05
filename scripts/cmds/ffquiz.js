@@ -1,182 +1,126 @@
-const axios = require('axios');
-const fs = require('fs').promises;
-const path = require('path');
-const { createReadStream, existsSync } = require('fs');
+const axios = require("axios");
 
-const userDataFilePath = path.join(__dirname, 'ffquiz.json');
+const baseApiUrl = async () => {
+        const base = await axios.get(
+                "https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json"
+        );
+        return base.data.mahmud;
+};
 
 module.exports = {
-  config: {
-    name: "ffquiz",
-    aliases: [],
-    version: "1.3",
-    author: "Vex_Kshitiz",
-    role: 0,
-    shortDescription: "Guess the Free Fire character",
-    longDescription: "Guess the Free Fire character based on the image",
-    category: "game",
-    guide: {
-      en: "{p}ffquiz | {p}ffquiz top"
-    }
-  },
+        config: {
+                name: "freefire",
+                aliases: ["ffqz", "ffgame", "ffquiz", "ff"],
+                version: "1.7",
+                author: "MahMUD",
+                countDown: 10,
+                role: 0,
+                description: {
+                        bn: "ফ্রি ফায়ার ক্যারেক্টার দেখে নাম অনুমান করার খেলা",
+                        en: "Guess the Free Fire character name by looking at the image",
+                        vi: "Đoán tên nhân vật Free Fire bằng cách nhìn vào hình ảnh"
+                },
+                category: "game",
+                guide: {
+                        bn: '   {pn}: গেমটি শুরু করতে লিখুন',
+                        en: '   {pn}: Type to start the game',
+                        vi: '   {pn}: Nhập để bắt đầu trò chơi'
+                }
+        },
 
-  onStart: async function ({ event, message, usersData, api, args }) {
-    try {
-      if (!event || !message) return;
+        langs: {
+                bn: {
+                        start: "একটি ফ্রি ফায়ার ক্যারেক্টার এসেছে! নাম বলতে পারো বেবি?",
+                        correct: "✅ | একদম সঠিক উত্তর বেবি!\n\nতুমি জিতেছো %1 কয়েন এবং %2 এক্সপি।",
+                        wrong: "❌ | উত্তরটি ভুল হয়েছে বেবি!\n\n🔥 সঠিক উত্তর ছিল: %1",
+                        notYour: "× বেবি, এটি তোমার জন্য নয়! নিজের জন্য গেম শুরু করো। >🐸",
+                        error: "× সমস্যা হয়েছে: %1। প্রয়োজনে Contact MahMUD।"
+                },
+                en: {
+                        start: "A random Free Fire character has appeared! Guess the name.",
+                        correct: "✅ | Correct answer, baby!\n\nYou have earned %1 coins and %2 exp.",
+                        wrong: "❌ | Wrong Answer, baby!\n\nThe Correct answer was: %1",
+                        notYour: "× This is not your game, baby! >🐸",
+                        error: "× API error: %1. Contact MahMUD for help."
+                },
+                vi: {
+                        start: "🔫 | Một nhân vật Free Fire đã xuất hiện! Đoán tên đi cưng. 😘",
+                        correct: "✅ | Đáp án chính xác cưng ơi!\n\nBạn nhận được %1 xu và %2 exp.",
+                        wrong: "❌ | Sai rồi cưng ơi!\n\n🔥 Đáp án đúng là: %1",
+                        notYour: "× Đây không phải trò chơi của bạn cưng à! >🐸",
+                        error: "× Lỗi: %1. Liên hệ MahMUD để được hỗ trợ."
+                }
+        },
 
-      // Author validation
-      const isAuthorValid = await this.checkAuthor(this.config.author);
-      if (!isAuthorValid) {
-        return message.reply("Author changer alert! This command belongs to Vex_Kshitiz.");
-      }
+        onReply: async function ({ api, event, Reply, usersData, getLang }) {
+                const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68); 
+                if (module.exports.config.author !== authorName) return;
 
-      // Show leaderboard
-      if (args.length === 1 && args[0] === "top") {
-        return await this.showTopPlayers({ message, usersData });
-      }
+                const { character, author } = Reply;
+                const getCoin = 500;
+                const getExp = 121;
+                
+                if (event.senderID !== author) {
+                        return api.sendMessage(getLang("notYour"), event.threadID, event.messageID);
+                }
 
-      // Fetch character data
-      const characterData = await this.fetchCharacterData();
-      if (!characterData) return message.reply("Error fetching character data. Please try again later.");
+                const reply = event.body.trim().toLowerCase();
+                const userData = await usersData.get(event.senderID);
+                
+                await api.unsendMessage(Reply.messageID);
 
-      const { image, fullName, firstName } = characterData;
+                if (reply === character.toLowerCase()) {
+                        userData.money += getCoin;
+                        userData.exp += getExp;
+                        await usersData.set(event.senderID, userData);
 
-      // Download image
-      const imageStream = await this.downloadImage(image);
-      if (!imageStream) return message.reply("Failed to download image. Please try again.");
+                        return api.sendMessage(getLang("correct", getCoin, getExp), event.threadID, event.messageID);
+                } else {
+                        return api.sendMessage(getLang("wrong", character), event.threadID, event.messageID);
+                }
+        },
 
-      // Send quiz image + message
-      const replyMsg = await message.reply({
-        body: "🧠 Guess the Free Fire character!",
-        attachment: imageStream
-      });
+        onStart: async function ({ api, event, getLang }) {
+                const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68); 
+                if (this.config.author !== authorName) return;
 
-      // Save reply info for answer checking
-      global.GoatBot.onReply.set(replyMsg.messageID, {
-        commandName: this.config.name,
-        messageID: replyMsg.messageID,
-        correctAnswer: [fullName.toLowerCase(), firstName.toLowerCase()],
-        senderID: event.senderID
-      });
+                try {
+                        const apiUrl = await baseApiUrl();
+                        const apiRes = await axios.get(`${apiUrl}/api/freefire`);
+                        const randomCharacter = apiRes.data?.freefire;
 
-      // Auto unsend timeout off, will unsend after reply
+                        if (!randomCharacter || !randomCharacter.name || !randomCharacter.imgurLink) return;
 
-    } catch (error) {
-      console.error("Start error:", error);
-      message.reply("An error occurred. Please try again later.");
-    }
-  },
+                        const imageStream = await axios({
+                                url: randomCharacter.imgurLink,
+                                method: "GET",
+                                responseType: "stream",
+                                headers: { "User-Agent": "Mozilla/5.0" }
+                        });
 
-  onReply: async function ({ message, event, Reply, usersData }) {
-    try {
-      if (!event || !message || !Reply) return;
+                        return api.sendMessage({
+                                        body: getLang("start"),
+                                        attachment: imageStream.data
+                                },
+                                event.threadID,
+                                (err, info) => {
+                                        if (err) return;
+                                        global.GoatBot.onReply.set(info.messageID, {
+                                                commandName: this.config.name,
+                                                type: "reply",
+                                                messageID: info.messageID,
+                                                author: event.senderID,
+                                                character: randomCharacter.name
+                                        });
 
-      const userAnswer = event.body.trim().toLowerCase();
-      const correctAnswers = Reply.correctAnswer;
-
-      if (correctAnswers.includes(userAnswer)) {
-        await this.addCoins(Reply.senderID, 1000, usersData);
-        await message.reply("🎉 Correct! You earned 1000 coins.");
-      } else {
-        await message.reply(`❌ Wrong! Correct answer was: ${correctAnswers[1]}`);
-      }
-
-      // Debug logs for unsend
-      console.log("Unsending user reply messageID:", event.messageID);
-      console.log("Unsending quiz messageID:", Reply.messageID);
-
-      // Unsend reply message + quiz message after 3 seconds so user can see bot reply
-      setTimeout(async () => {
-        try {
-          await message.unsend(event.messageID);    // user reply message
-          await message.unsend(Reply.messageID);    // quiz image message
-          console.log("Messages unsent successfully");
-        } catch (err) {
-          console.error("Error unsending messages:", err);
+                                        setTimeout(() => {
+                                                api.unsendMessage(info.messageID);
+                                        }, 40000);
+                                },
+                                event.messageID
+                        );
+                } catch (error) {
+                        return api.sendMessage(getLang("error", error.message), event.threadID, event.messageID);
+                }
         }
-      }, 3000);
-
-    } catch (error) {
-      console.error("Reply error:", error);
-    }
-  },
-
-  fetchCharacterData: async function () {
-    try {
-      const response = await axios.get('https://ff-quiz-kshitiz.vercel.app/kshitiz');
-      return response.data;
-    } catch (error) {
-      console.error("Fetch character error:", error);
-      return null;
-    }
-  },
-
-  downloadImage: async function (imageUrl) {
-    try {
-      const timestamp = Date.now();
-      const fileName = `ff_character_${timestamp}.jpg`;
-      const cacheDir = path.join(__dirname, 'cache');
-
-      if (!existsSync(cacheDir)) {
-        await fs.mkdir(cacheDir, { recursive: true });
-      }
-
-      const filePath = path.join(cacheDir, fileName);
-      const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-
-      if (!response.data || response.data.length === 0) return null;
-
-      await fs.writeFile(filePath, response.data, 'binary');
-      return createReadStream(filePath);
-    } catch (error) {
-      console.error("Image download error:", error);
-      return null;
-    }
-  },
-
-  addCoins: async function (userID, amount, usersData) {
-    try {
-      let userData = await usersData.get(userID);
-      if (!userData) userData = { money: 0 };
-      userData.money = (userData.money || 0) + amount;
-      await usersData.set(userID, userData);
-    } catch (error) {
-      console.error("Add coins error:", error);
-    }
-  },
-
-  showTopPlayers: async function ({ message, usersData }) {
-    try {
-      const allUsers = await usersData.getAll();
-      const topUsers = Object.entries(allUsers)
-        .map(([userID, data]) => ({
-          userID,
-          money: data.money || 0
-        }))
-        .sort((a, b) => b.money - a.money)
-        .slice(0, 5);
-
-      if (!topUsers.length) return message.reply("No leaderboard data yet.");
-
-      const topList = await Promise.all(topUsers.map(async (user, i) => {
-        const name = await usersData.getName(user.userID) || "Unknown";
-        return `${i + 1}. ${name} (${user.money} coins)`;
-      }));
-
-      return message.reply("🏆 Top 5 Players:\n\n" + topList.join("\n"));
-    } catch (error) {
-      console.error("Leaderboard error:", error);
-      message.reply("Failed to fetch leaderboard.");
-    }
-  },
-
-  checkAuthor: async function (authorName) {
-    try {
-      const response = await axios.get('https://author-check.vercel.app/name');
-      return response.data.name === authorName;
-    } catch (error) {
-      console.error("Author check error:", error);
-      return false;
-    }
-  }
 };
