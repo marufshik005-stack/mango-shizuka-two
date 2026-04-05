@@ -1,6 +1,17 @@
 const axios = require("axios");
+// Add this at the very top of your onStart function
 const fs = require("fs-extra");
 const path = require("path");
+
+const vipDbPath = path.join(__dirname, "../../data/vip.json");
+const vipData = fs.existsSync(vipDbPath) ? fs.readJsonSync(vipDbPath) : {};
+
+const isAdmin = global.GoatBot.config.adminBot.includes(event.senderID);
+const isVip = isAdmin || (vipData[event.senderID] && vipData[event.senderID].expiry > Date.now());
+
+if (!isVip) {
+    return message.reply("👑 𝗩𝗜𝗣 𝗢𝗡𝗟𝗬!\nThis is a premium feature. Please buy a VIP card to use this command.\nType: /vip buy");
+}
 
 const baseApiUrl = async () => {
         const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
