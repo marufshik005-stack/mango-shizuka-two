@@ -1,190 +1,90 @@
-const axios = require('axios');
+const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
+
+const baseApiUrl = async () => {
+  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
+  return base.data.mahmud;
+};
 
 module.exports = {
-    config: {
-        name: "slap",
-        aliases: ["👋", "slapping"],
-        version: "1.0.0",
-        author: "GoatBot",
-        countDown: 5,
-        role: 0,
-        shortDescription: "Slap someone with a meme!",
-        longDescription: "Generate a funny slapping meme by replying to someone or mentioning them",
-        category: "fun",
-        guide: {
-            en: [
-                "   {pn}: Reply to someone's message to slap them",
-                "   {pn} @mention: Mention someone to slap them",
-                "   {pn} [user ID]: Use someone's ID to slap them"
-            ].join("\\n")
-        }
-    },
-
-    langs: {
-        en: {
-            noTarget: "❌ Please reply to someone's message or mention/ID someone to slap them!",
-            cannotSlapSelf: "😅 You can't slap yourself! That's just sad...",
-            cannotSlapBot: "🤖 Hey! Don't slap me, I'm just doing my job!",
-            generating: "🎭 Generating slap meme... Please wait! ✨",
-            generationFailed: "❌ Failed to generate slap meme: {error}",
-            apiError: "❌ Slap API is currently unavailable. Please try again later!",
-            success: "💥 **SLAP SUCCESSFUL!** 👋\\n\\n{slapperName} just slapped {victimName}! 😂"
-        }
-    },
-
-    onStart: async function ({ message, event, api, args, getLang, usersData }) {
-        try {
-            console.log('👋 [SLAP CMD] Slap command triggered');
-            
-            let targetUserID = null;
-            let targetName = "Someone";
-            let slapperID = event.senderID;
-            let slapperName = "Someone";
-            
-            // Get slapper info
-            try {
-                const slapperData = await usersData.get(slapperID);
-                slapperName = slapperData.name || "Someone";
-            } catch (error) {
-                console.log('⚠️ [SLAP CMD] Could not get slapper name:', error.message);
-            }
-            
-            // Determine target from reply, mention, or ID
-            if (event.messageReply) {
-                // Replying to someone's message
-                targetUserID = event.messageReply.senderID;
-                console.log('📤 [SLAP CMD] Target from reply:', targetUserID);
-                
-            } else if (Object.keys(event.mentions || {}).length > 0) {
-                // Someone was mentioned
-                targetUserID = Object.keys(event.mentions)[0];
-                console.log('👥 [SLAP CMD] Target from mention:', targetUserID);
-                
-            } else if (args[0] && /^\d+$/.test(args[0])) {
-                // User ID provided as argument
-                targetUserID = args[0];
-                console.log('🆔 [SLAP CMD] Target from ID:', targetUserID);
-                
-            } else {
-                // No target specified
-                return message.reply(getLang("noTarget"));
-            }
-            
-            // Validate target
-            if (!targetUserID) {
-                return message.reply(getLang("noTarget"));
-            }
-            
-            // Prevent self-slapping
-            if (targetUserID === slapperID) {
-                return message.reply(getLang("cannotSlapSelf"));
-            }
-            
-            // Prevent slapping the bot
-            if (targetUserID === api.getCurrentUserID()) {
-                return message.reply(getLang("cannotSlapBot"));
-            }
-            
-            // Get target user info
-            try {
-                const targetData = await usersData.get(targetUserID);
-                targetName = targetData.name || "Someone";
-            } catch (error) {
-                console.log('⚠️ [SLAP CMD] Could not get target name:', error.message);
-            }
-            
-            console.log('🎯 [SLAP CMD] Slap participants:', {
-                slapper: slapperName,
-                victim: targetName,
-                slapperID,
-                targetUserID
-            });
-            
-            // Send processing message
-            const processingMsg = await message.reply(getLang("generating"));
-            
-            try {
-                // Get profile picture URLs
-                const slapperPfpUrl = `https://graph.facebook.com/${slapperID}/picture?width=200&height=200&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
-                const victimPfpUrl = `https://graph.facebook.com/${targetUserID}/picture?width=200&height=200&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
-                
-                console.log('🖼️ [SLAP CMD] Profile picture URLs generated');
-                
-                // Call the external slap meme API
-                const SLAP_API_URL = process.env.SLAP_API_URL || 'https://your-slap-api.render.com';
-                
-                console.log('🌐 [SLAP CMD] Using API:', SLAP_API_URL);
-                    
-                const response = await axios.post(`${SLAP_API_URL}/api/generate`, {
-                    victimPfp: victimPfpUrl,
-                    slapperPfp: slapperPfpUrl,
-                    victimName: targetName,
-                    slapperName: slapperName
-                }, {
-                    timeout: 30000, // 30 second timeout
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (response.data.success === true) {
-                    console.log('✅ [SLAP CMD] Slap meme generated successfully');
-                    
-                    // Convert base64 back to buffer and save temporarily
-                    const imageBuffer = Buffer.from(response.data.data.image, 'base64');
-                    const fs = require('fs');
-                    const tempImagePath = `./temp_slap_${Date.now()}.png`;
-                    
-                    // Write buffer to temporary file
-                    fs.writeFileSync(tempImagePath, imageBuffer);
-                    
-                    // Send the slap meme
-                    await message.reply({
-                        body: getLang("success", slapperName, targetName),
-                        attachment: fs.createReadStream(tempImagePath)
-                    });
-                    
-                    // Clean up temporary file after a delay
-                    setTimeout(() => {
-                        try {
-                            fs.unlinkSync(tempImagePath);
-                        } catch (cleanupError) {
-                            console.log('⚠️ [SLAP CMD] Could not clean up temp file:', cleanupError.message);
-                        }
-                    }, 5000);
-                    
-                    // Unsend the processing message
-                    try {
-                        await api.unsendMessage(processingMsg.messageID);
-                    } catch (unsendError) {
-                        console.log('⚠️ [SLAP CMD] Could not unsend processing message:', unsendError.message);
-                    }
-                    
-                } else {
-                    throw new Error(response.data.error || 'API returned error status');
+        config: {
+                name: "slap",
+                aliases: ["thappor"],
+                version: "1.7",
+                author: "MahMUD",
+                countDown: 10,
+                role: 0,
+                description: {
+                        bn: "কাউকে থাপ্পড় মারার ছবি তৈরি করুন",
+                        en: "Create a slap image of someone"
+                },
+                category: "fun",
+                guide: {
+                        bn: '   {pn} <@tag>: কাউকে ট্যাগ করে থাপ্পড় মারুন'
+                                + '\n   {pn} <uid>: UID এর মাধ্যমে থাপ্পড় মারুন'
+                                + '\n   (অথবা কারো মেসেজে রিপ্লাই দিয়ে এটি ব্যবহার করুন)',
+                        en: '   {pn} <@tag>: Slap a tagged user'
+                                + '\n   {pn} <uid>: Slap by UID'
+                                + '\n   (Or reply to someone\'s message)'
                 }
-                
-            } catch (apiError) {
-                console.error('❌ [SLAP CMD] API call failed:', apiError.message);
-                
-                // Unsend processing message
+        },
+
+        langs: {
+                bn: {
+                        noTarget: "× বেবি, কাকে থাপ্পড় মারবে তাকে মেনশন দাও বা রিপ্লাই করো!",
+                        success: "এই নাও থাপ্পড়! একদম গাল লাল হয়ে গেছে 💥",
+                        error: "× থাপ্পড় মারতে গিয়ে সমস্যা হয়েছে: %1। প্রয়োজনে Contact MahMUD।"
+                },
+                en: {
+                        noTarget: "× Baby, mention or reply to someone to slap!",
+                        success: "Here's a slap! 💥",
+                        error: "× Failed to slap: %1. Contact MahMUD for help."
+                }
+        },
+
+        onStart: async function ({ api, message, args, event, getLang }) {
+                const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68);
+                if (this.config.author !== authorName) {
+                        return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);
+                }
+
+                const { senderID, messageReply, mentions } = event;
+                let id2;
+
+                if (messageReply) {
+                        id2 = messageReply.senderID;
+                } else if (Object.keys(mentions).length > 0) {
+                        id2 = Object.keys(mentions)[0];
+                } else if (args[0] && !isNaN(args[0])) {
+                        id2 = args[0];
+                }
+
+                if (!id2) return message.reply(getLang("noTarget"));
+
                 try {
-                    await api.unsendMessage(processingMsg.messageID);
-                } catch (unsendError) {
-                    console.log('⚠️ [SLAP CMD] Could not unsend processing message:', unsendError.message);
+                        const baseUrl = await baseApiUrl();
+                        const url = `${baseUrl}/api/dig?type=slap&user=${senderID}&user2=${id2}`;
+
+                        const response = await axios.get(url, { responseType: "arraybuffer" });
+                        const cachePath = path.join(__dirname, "cache", `slap_${id2}.png`);
+                        
+                        if (!fs.existsSync(path.join(__dirname, "cache"))) {
+                                fs.mkdirSync(path.join(__dirname, "cache"));
+                        }
+
+                        fs.writeFileSync(cachePath, Buffer.from(response.data));
+
+                        await message.reply({
+                                body: getLang("success"),
+                                attachment: fs.createReadStream(cachePath)
+                        });
+
+                        fs.unlinkSync(cachePath);
+                } catch (err) {
+                        console.error("Error in slap command:", err);
+                        return message.reply(getLang("error", err.message));
                 }
-                
-                // Send error message
-                if (apiError.code === 'ECONNREFUSED' || apiError.message.includes('localhost')) {
-                    await message.reply(getLang("apiError"));
-                } else {
-                    await message.reply(getLang("generationFailed", apiError.message));
-                }
-            }
-            
-        } catch (error) {
-            console.error('❌ [SLAP CMD] Command error:', error);
-            await message.reply(getLang("generationFailed", error.message));
         }
-    }
 };
+
