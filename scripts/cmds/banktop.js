@@ -1,11 +1,11 @@
 const Canvas = require("canvas");
 const { randomString } = global.utils;
 
-// Register fonts
-Canvas.registerFont(${__dirname}/assets/font/BeVietnamPro-Bold.ttf, {
+// Register fonts (Backticks added here)
+Canvas.registerFont(`${__dirname}/assets/font/BeVietnamPro-Bold.ttf`, {
         family: "BeVietnamPro-Bold"
 });
-Canvas.registerFont(${__dirname}/assets/font/BeVietnamPro-SemiBold.ttf, {
+Canvas.registerFont(`${__dirname}/assets/font/BeVietnamPro-SemiBold.ttf`, {
         family: "BeVietnamPro-SemiBold"
 });
 
@@ -68,7 +68,9 @@ module.exports = {
                 }
 
                 const leaderboardImage = await createBankLeaderboard(ranked.slice(0, limit));
-                leaderboardImage.path = banktop_${randomString(10)}.png;
+                
+                // Backticks added here
+                leaderboardImage.path = `banktop_${randomString(10)}.png`;
 
                 return message.reply({
                         attachment: leaderboardImage
@@ -181,7 +183,9 @@ async function drawUserTable(ctx, users, startRank) {
                 ctx.font = "bold 14px BeVietnamPro-Bold";
                 ctx.fillStyle = "#000000";
                 ctx.textAlign = "center";
-                ctx.fillText(#${rank}, 100, y + 10);
+                
+                // Backticks added here
+                ctx.fillText(`#${rank}`, 100, y + 10);
 
                 try {
                         const avatar = await Canvas.loadImage(user.avatar);
