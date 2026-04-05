@@ -11,8 +11,8 @@ module.exports = {
         config: {
                 name: "edit",
                 aliases: ["imgedit"],
-                version: "1.7",
-                author: "MahMUD", // credit Change dile thapramu kintu.
+                version: "1.8",
+                author: "MahMUD", 
                 countDown: 10,
                 role: 0,
                 description: {
@@ -22,7 +22,7 @@ module.exports = {
                 },
                 category: "image",
                 guide: {
-                        bn: '   {pn} <প্রম্পট>: ছবির রিপ্লাই দিয়ে এডিট প্রম্পট লিখুন'
+                        bn: '   {pn} <প্রম্পট>: ছবির রিপ্লাই দিয়ে এডিট প্রম্পট লিখুন'
                                 + '\n   উদাহরণ: {pn} change hair color to red',
                         en: '   {pn} <prompt>: Reply to an image with edit instructions'
                                 + '\n   Example: {pn} add sunglasses to face',
@@ -33,26 +33,32 @@ module.exports = {
 
         langs: {
                 bn: {
-                        noInput: "× বেবি, একটি ছবিতে রিপ্লাই দিয়ে বলো কি এডিট করতে হবে! 🪄",
-                        wait: "🔄 | তোমার ছবি এডিট করা হচ্ছে, একটু অপেক্ষা করো বেবি...",
-                        success: "✅ | তোমার এডিট করা ছবি তৈরি: \"%1\"",
-                        error: "× এডিট করতে সমস্যা হয়েছে: %1। প্রয়োজনে Contact MahMUD।"
+                        noInput: "❌ বেবি, একটি ছবিতে রিপ্লাই দিয়ে বলো কি এডিট করতে হবে! 🪄",
+                        wait: "🔄 | 𝗧𝗼𝗺𝗮𝗿 𝗰𝗵𝗼𝗯𝗶 𝗲𝗱𝗶𝘁 𝗸𝗼𝗿𝗮 𝗵𝗼𝗰𝗰𝗵𝗲, 𝗲𝗸𝘁𝘂 𝗼𝗽𝗲𝗸𝗸𝗵𝗮 𝗸𝗼𝗿𝗼...",
+                        success: "✅ | 𝗧𝗼𝗺𝗮𝗿 𝗲𝗱𝗶𝘁 𝗸𝗼𝗿𝗮 𝗰𝗵𝗼𝗯𝗶 𝘁𝗼𝗶𝗿𝗶: \"%1\"",
+                        error: "❌ 𝗔𝗻 𝗲𝗿𝗿𝗼𝗿 𝗼𝗰𝗰𝘂𝗿𝗿𝗲𝗱: %1"
                 },
                 en: {
-                        noInput: "× Baby, please reply to a photo with your prompt to edit it! 🪄",
-                        wait: "🔄 | Editing your image, please wait...",
-                        success: "✅ Here's your Edited image\nPrompt: %1",
-                        error: "× Failed to edit: %1. Contact MahMUD for help."
-                },
-                vi: {
-                        noInput: "× Cưng ơi, vui lòng phản hồi ảnh kèm lời nhắc chỉnh sửa! 🪄",
-                        wait: "🔄 | Đang chỉnh sửa ảnh, vui lòng chờ chút nhé...",
-                        success: "✅ | Ảnh đã chỉnh sửa cho: \"%1\"",
-                        error: "× Lỗi chỉnh sửa: %1. Liên hệ MahMUD để hỗ trợ."
+                        noInput: "❌ Baby, please reply to a photo with your prompt to edit it! 🪄",
+                        wait: "🔄 | 𝗘𝗱𝗶𝘁𝗶𝗻𝗴 𝘆𝗼𝘂𝗿 𝗶𝗺𝗮𝗴𝗲, 𝗽𝗹𝗲𝗮𝘀𝗲 𝘄𝗮𝗶𝘁...",
+                        success: "✅ 𝗛𝗲𝗿𝗲'𝘀 𝘆𝗼𝘂𝗿 𝗘𝗱𝗶𝘁𝗲𝗱 𝗶𝗺𝗮𝗴𝗲\n𝗣𝗿𝗼𝗺𝗽𝘁: %1",
+                        error: "❌ 𝗔𝗻 𝗲𝗿𝗿𝗼𝗿 𝗼𝗰𝗰𝘂𝗿𝗿𝗲𝗱: %1"
                 }
         },
 
         onStart: async function ({ api, event, args, message, getLang }) {
+                // --- VIP CHECK START ---
+                const vipDbPath = path.join(__dirname, "../../data/vip.json");
+                const vipData = fs.existsSync(vipDbPath) ? fs.readJsonSync(vipDbPath) : {};
+
+                const isAdmin = global.GoatBot.config.adminBot.includes(event.senderID);
+                const isVip = isAdmin || (vipData[event.senderID] && vipData[event.senderID].expiry > Date.now());
+
+                if (!isVip) {
+                    return message.reply("👑 𝗩𝗜𝗣 𝗢𝗡𝗟𝗬!\nThis is a premium feature. Please buy a VIP card to use this command.\nType: /vip buy");
+                }
+                // --- VIP CHECK END ---
+
                 const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68);
                 if (this.config.author !== authorName) {
                         return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);
