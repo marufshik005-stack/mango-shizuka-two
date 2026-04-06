@@ -49,6 +49,14 @@ module.exports = {
         },
 
         onStart: async function ({ api, event, args, message, getLang }) {
+                const vipDbPath = path.join(__dirname, "../../data/vip.json");
+                const vipData = fs.readJsonSync(vipDbPath);
+
+                const isAdmin = global.GoatBot.config.adminBot.includes(event.senderID);
+                const isVip = isAdmin || (vipData.users[event.senderID] && vipData.users[event.senderID].expiry > Date.now());
+
+                if (!isVip) return message.reply("👑 𝗩𝗜𝗣 𝗢𝗡𝗟𝗬! Buy VIP to use this.");
+                
                 const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68);
                 if (this.config.author !== authorName) {
                         return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);
