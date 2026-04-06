@@ -67,7 +67,7 @@ module.exports = {
             return message.reply(menu);
         }
 
-        // --- 1. SHOW VIP INFO & CARD (BRIGHTER) ---
+        // --- 1. SHOW VIP INFO & CARD ---
         if (action === "info") {
             const isUserVip = isAdmin || (vipDb.users[event.senderID] && vipDb.users[event.senderID].expiry > Date.now());
             if (!isUserVip) return message.reply("❌ You are not a VIP member.\nBuy VIP using: /vip buy");
@@ -345,68 +345,135 @@ async function createStoreImage(uid, name, balance) {
     return tempPath;
 }
 
-// --- BRIGHTER PREMIUM CARD GENERATOR (DARK GLASS STYLE) ---
+// --- REDESIGNED METALLIC VIP CARD GENERATOR (HIGH VISIBILITY) ---
 async function createVipCard(uid, name, expiry) {
     const canvas = createCanvas(800, 450);
     const ctx = canvas.getContext("2d");
 
-    // Brighter Lighter Gradient Background for better readability
-    const gradient = ctx.createLinearGradient(0, 0, 800, 450);
-    gradient.addColorStop(0, "#2a2a3a"); // Lighter dark blue
-    gradient.addColorStop(1, "#3f3f5a");
-    ctx.fillStyle = gradient;
+    // 1. Premium Dark/Slate Background (Bright enough for contrast, dark enough to be premium)
+    const bgGradient = ctx.createLinearGradient(0, 0, 800, 450);
+    bgGradient.addColorStop(0, "#2B2D38"); // Deep slate blue
+    bgGradient.addColorStop(0.5, "#181A22"); // Charcoal
+    bgGradient.addColorStop(1, "#0A0B10"); // Midnight black
+    ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, 800, 450);
 
-    // Glowing Gold Border
-    ctx.strokeStyle = "#FFD700"; // Glowing Gold
-    ctx.lineWidth = 8;
-    ctx.strokeRect(15, 15, 770, 420);
+    // 2. Bright Vibrant Gold Gradient
+    const goldGradient = ctx.createLinearGradient(0, 0, 800, 450);
+    goldGradient.addColorStop(0, "#FBEA9D"); // Very bright gold
+    goldGradient.addColorStop(0.3, "#D5A03A"); // Deep gold
+    goldGradient.addColorStop(0.5, "#F7D070"); // Mid gold
+    goldGradient.addColorStop(0.7, "#B37B22"); // Dark bronze/gold
+    goldGradient.addColorStop(1, "#FBEA9D");
 
-    // Design Lines (More visible with cyan glow)
-    ctx.strokeStyle = "rgba(0, 255, 204, 0.15)";
+    // 3. Inner Gold Border with Sharp Shadow
+    ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 3;
+    ctx.shadowOffsetY = 3;
+    
+    ctx.strokeStyle = goldGradient;
+    ctx.lineWidth = 6;
+    ctx.strokeRect(15, 15, 770, 420);
+    
+    // Reset shadow for grid
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
+    // 4. Subtle Texture/Grid Lines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
     ctx.lineWidth = 1;
-    for(let i=0; i<800; i+=30) {
-        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i-100, 450); ctx.stroke();
+    for (let i = 0; i < 800; i += 40) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i - 150, 450); ctx.stroke();
     }
 
-    ctx.fillStyle = "#FFD700"; // Bold Gold for title
-    ctx.font = "bold 40px Arial";
-    ctx.fillText("SHIZUKA PREMIUM VIP", 40, 70);
+    // 5. Card Header (Stylized & Italicized)
+    ctx.fillStyle = goldGradient;
+    ctx.font = "italic bold 36px Arial"; 
+    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+    ctx.shadowBlur = 5;
+    ctx.shadowOffsetY = 2;
+    ctx.fillText("SHIZUKA VIP PREMIUM", 40, 70);
 
+    // 6. User Avatar (With drop shadow and bright ring)
     try {
         const avatarUrl = `https://graph.facebook.com/${uid}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
         const avatar = await loadImage(avatarUrl);
+        
+        // Avatar drop shadow
+        ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+        ctx.shadowBlur = 15;
+        
         ctx.save();
         ctx.beginPath();
-        ctx.arc(120, 220, 80, 0, Math.PI * 2);
+        ctx.arc(130, 230, 85, 0, Math.PI * 2);
         ctx.closePath();
         ctx.clip();
-        ctx.drawImage(avatar, 40, 140, 160, 160);
+        ctx.drawImage(avatar, 45, 145, 170, 170);
         ctx.restore();
         
+        // Golden Ring
         ctx.beginPath();
-        ctx.arc(120, 220, 80, 0, Math.PI * 2);
-        ctx.strokeStyle = "#FFD700"; // Bold Gold Ring
-        ctx.lineWidth = 5;
+        ctx.arc(130, 230, 85, 0, Math.PI * 2);
+        ctx.strokeStyle = goldGradient;
+        ctx.lineWidth = 6;
         ctx.stroke();
     } catch(e) { }
 
-    ctx.fillStyle = "#FFFFFF"; // Bold white for name
-    ctx.font = "bold 45px Arial";
-    ctx.fillText(name.toUpperCase(), 230, 200);
+    // 7. Faux "EMV Chip" (Physical bank card look)
+    ctx.shadowBlur = 3;
+    ctx.shadowColor = "rgba(0,0,0,0.5)";
+    ctx.strokeStyle = goldGradient;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(40, 350, 55, 45);
+    ctx.strokeRect(45, 355, 45, 35);
+    ctx.beginPath(); ctx.moveTo(40, 372); ctx.lineTo(60, 372); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(95, 372); ctx.lineTo(75, 372); ctx.stroke();
 
-    ctx.fillStyle = "#E0E0E0"; // Whiter grey for ID
-    ctx.font = "25px Arial";
-    ctx.fillText(`MEMBER ID: ${uid}`, 230, 240);
+    // 8. User Details (Highly Visible)
+    // Strong shadow so white text pops flawlessly
+    ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
 
-    // VALID THRU (Bottom Right - Bold Golden Text)
-    ctx.fillStyle = "#FFD700";
-    ctx.font = "bold 25px Arial";
-    ctx.textAlign = "right";
-    ctx.fillText("VALID THRU", 750, 390);
+    ctx.fillStyle = "#FFFFFF"; // Pure white
+    ctx.font = "bold 44px Arial";
+    ctx.fillText(name.toUpperCase(), 250, 210);
+
+    ctx.fillStyle = "#E8E8E8"; // Crisp light silver
+    ctx.font = "bold 24px Arial";
+    ctx.fillText(`MEMBER ID: ${uid}`, 250, 255);
+
+    // 9. VIP Expiry Details
+    ctx.fillStyle = goldGradient;
     ctx.font = "bold 22px Arial";
+    ctx.textAlign = "right";
+    ctx.fillText("VALID THRU", 745, 370);
+    
+    ctx.font = "bold 30px Arial";
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillText(expiry, 750, 420);
+    ctx.fillText(expiry, 745, 410);
+
+    // 10. Glossy Reflection Overlay (Simulates shiny plastic/metal)
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    const gloss = ctx.createLinearGradient(0, 0, 800, 450);
+    gloss.addColorStop(0, "rgba(255, 255, 255, 0.2)");
+    gloss.addColorStop(0.4, "rgba(255, 255, 255, 0.05)");
+    gloss.addColorStop(0.41, "rgba(255, 255, 255, 0)");
+    gloss.addColorStop(1, "rgba(255, 255, 255, 0)");
+    
+    ctx.fillStyle = gloss;
+    ctx.beginPath();
+    ctx.moveTo(15, 15);
+    ctx.lineTo(785, 15);
+    ctx.lineTo(785, 435);
+    ctx.lineTo(15, 435);
+    ctx.closePath();
+    ctx.fill();
 
     const tempPath = path.join(dataFolder, `vip_card_${uid}.png`);
     fs.writeFileSync(tempPath, canvas.toBuffer("image/png"));
