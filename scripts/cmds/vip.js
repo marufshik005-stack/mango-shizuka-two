@@ -8,15 +8,34 @@ const dbPath = path.join(dataFolder, "vip.json");
 const M = 1000000; // 1 Million
 
 if (!fs.existsSync(dataFolder)) fs.mkdirSync(dataFolder, { recursive: true });
-if (!fs.existsSync(dbPath)) fs.writeJsonSync(dbPath, {});
+if (!fs.existsSync(dbPath)) fs.writeJsonSync(dbPath, { users: {}, commands: ["Art", "Edit", "Fakechat", "Gay", "Mistake", "Pair mention", "Pair msg Reply"] });
 
-// VIP Packages Pricing
+// Auto-migrate old database if needed
+let tempDb = fs.readJsonSync(dbPath);
+if (!tempDb.users) {
+    const migrated = { users: {}, commands: ["Art", "Edit", "Fakechat", "Gay", "Mistake", "Pair mention", "Pair msg Reply"] };
+    for (let key in tempDb) migrated.users[key] = tempDb[key];
+    fs.writeJsonSync(dbPath, migrated);
+}
+
+// VIP Packages Pricing updated from user request/screenshot
 const packages = {
-    "1": { days: 1, price: 1 * M, label: "1M" },
-    "3": { days: 3, price: 2 * M, label: "2M" },
-    "10": { days: 10, price: 5 * M, label: "5M" },
-    "30": { days: 30, price: 10 * M, label: "10M" }
+    "1": { days: 1, price: 1.0 * M, label: "1M", name: "1 DAY VIP" },
+    "2": { days: 2, price: 1.8 * M, label: "1.8M", name: "2 DAYS VIP" },
+    "3": { days: 3, price: 2.5 * M, label: "2.5M", name: "3 DAYS VIP" },
+    "4": { days: 5, price: 4.0 * M, label: "4.0M", name: "5 DAYS VIP" },
+    "5": { days: 7, price: 6.0 * M, label: "6.0M", name: "7 DAYS VIP" },
+    "6": { days: 10, price: 8.5 * M, label: "8.5M", name: "10 DAYS VIP" },
+    "7": { days: 15, price: 12.0 * M, label: "12.0M", name: "15 DAYS VIP" },
+    "8": { days: 20, price: 16.0 * M, label: "16.0M", name: "20 DAYS VIP" },
+    "9": { days: 25, price: 20.0 * M, label: "20.0M", name: "25 DAYS VIP" },
+    "10": { days: 30, price: 24.0 * M, label: "24.0M", name: "30 DAYS VIP" }
 };
+
+function getUnicodeNumber(num) {
+    const uninum = ["𝟎","𝟏","𝟐","𝟑","𝟒","𝟓","𝟔","𝟕","𝟖","𝟗"];
+    return num.toString().split('').map(n => uninum[n]).join('');
+}
 
 module.exports = {
     config: {
@@ -25,40 +44,45 @@ module.exports = {
         author: "zisan",
         countDown: 5,
         role: 0,
-        shortDescription: "VIP System",
-        longDescription: "Buy VIP, check status, or see locked commands.",
+        shortDescription: "Advanced VIP System",
+        longDescription: "Buy VIP, check status, see locked commands and graphical store.",
         category: "system",
-        guide: "{pn} info | buy [1/3/10] | cmd | add @mention [days] | remove @mention"
+        guide: "{pn} | buy | info | cmd | list | add | remove"
     },
 
-    onStart: async function ({ api, event, args, message, Currencies }) {
+    onStart: async function ({ api, event, args, message, Currencies, usersData }) {
         const vipDb = fs.readJsonSync(dbPath);
         const action = args[0]?.toLowerCase();
         const isAdmin = global.GoatBot.config.adminBot.includes(event.senderID);
+        
+        let senderName = "User";
+        try {
+            const sData = await usersData.get(event.senderID);
+            senderName = sData.name;
+        } catch(e) {}
 
-        // --- 1. SHOW VIP INFO & CARD ---
-        if (!action || action === "info") {
-            const isUserVip = isAdmin || (vipDb[event.senderID] && vipDb[event.senderID].expiry > Date.now());
-            
-            if (!isUserVip) {
-                return message.reply("❌ You are not a VIP member.\nBuy VIP using: /vip buy [1/3/10]");
-            }
+        // --- 0. MAIN MENU ---
+        if (!action) {
+            const menu = `╭─ [ 𝗦𝗛𝗜𝗭𝗨𝗞𝗔 𝗩𝗜𝗣 𝗠𝗘𝗡𝗨 ]\n╰‣ 𝐀𝐝𝐝\n╰‣ 𝐑𝐞𝐦𝐨𝐯𝐞\n╰‣ 𝐋𝐢𝐬𝐭\n╰‣ 𝐢𝐧𝐟𝐨\n╰‣ 𝐁𝐮𝐲\n╰‣ 𝐂𝐦𝐝\n\n• ${senderName}`;
+            return message.reply(menu);
+        }
+
+        // --- 1. SHOW VIP INFO & CARD (BRIGHTER) ---
+        if (action === "info") {
+            const isUserVip = isAdmin || (vipDb.users[event.senderID] && vipDb.users[event.senderID].expiry > Date.now());
+            if (!isUserVip) return message.reply("❌ You are not a VIP member.\nBuy VIP using: /vip buy");
 
             message.reply("⌛ 𝗚𝗲𝗻𝗲𝗿𝗮𝘁𝗶𝗻𝗴 𝘆𝗼𝘂𝗿 𝗣𝗿𝗲𝗺𝗶𝘂𝗺 𝗩𝗜𝗣 𝗖𝗮𝗿𝗱...");
-            
-            const userInfo = await api.getUserInfo(event.senderID);
-            const userName = userInfo[event.senderID].name;
-            
             let expiryText = "𝗙𝗢𝗥𝗘𝗩𝗘𝗥";
-            if (!isAdmin && vipDb[event.senderID]) {
-                const date = new Date(vipDb[event.senderID].expiry);
+            if (!isAdmin && vipDb.users[event.senderID]) {
+                const date = new Date(vipDb.users[event.senderID].expiry);
                 expiryText = date.toLocaleDateString("en-GB") + " " + date.toLocaleTimeString("en-GB");
             }
 
             try {
-                const imgPath = await createVipCard(event.senderID, userName, expiryText);
+                const imgPath = await createVipCard(event.senderID, senderName, expiryText);
                 return message.reply({
-                    body: `👑 𝗦𝗛𝗜𝗭𝗨𝗞𝗔 𝗩𝗜𝗣 𝗠𝗘𝗠𝗕𝗘𝗥 👑\n𝗡𝗮𝗺𝗲: ${userName}\n𝗩𝗮𝗹𝗶𝗱 𝗧𝗵𝗿𝘂: ${expiryText}\n\nEnjoy your premium features!`,
+                    body: `👑 𝗦𝗛𝗜𝗭𝗨𝗞𝗔 𝗩𝗜𝗣 𝗠𝗘𝗠𝗕𝗘𝗥 👑\n𝗡𝗮𝗺𝗲: ${senderName}\n𝗩𝗮𝗹𝗶𝗱 𝗧𝗵𝗿𝘂: ${expiryText}`,
                     attachment: fs.createReadStream(imgPath)
                 }, () => {
                     if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
@@ -68,202 +92,321 @@ module.exports = {
             }
         }
 
-        // --- 2. BUY VIP ---
+        // --- 2. BUY VIP (WITH STORE IMAGE) ---
         if (action === "buy") {
             const packKey = args[1];
-            const pack = packages[packKey];
-
-            if (!pack) {
-                return message.reply(`🛒 𝗩𝗜𝗣 𝗣𝗔𝗖𝗞𝗔𝗚𝗘𝗦:\n𝟭 𝗗𝗮𝘆: ${packages["1"].label} coins (Type: /vip buy 1)\n𝟯 𝗗𝗮𝘆𝘀: ${packages["3"].label} coins (Type: /vip buy 3)\n𝟭𝟬 𝗗𝗮𝘆𝘀: ${packages["10"].label} coins (Type: /vip buy 10)`);
+            
+            // If no number provided, show the graphical store menu
+            if (!packKey) {
+                const userMoney = await Currencies.getMoney(event.senderID);
+                const formatMoney = (userMoney / M).toFixed(1) + "M";
+                message.reply("🛒 𝗢𝗽𝗲𝗻𝗶𝗻𝗴 𝗩𝗜𝗣 𝗦𝘁𝗼𝗿𝗲...");
+                
+                try {
+                    const storeImgPath = await createStoreImage(event.senderID, senderName, formatMoney);
+                    return message.reply({
+                        attachment: fs.createReadStream(storeImgPath)
+                    }, () => {
+                        if (fs.existsSync(storeImgPath)) fs.unlinkSync(storeImgPath);
+                    });
+                } catch(e) {
+                    return message.reply("❌ Error opening store.");
+                }
             }
+
+            // Process purchase
+            const pack = packages[packKey];
+            if (!pack) return message.reply("❌ Invalid package number. Please check the store image.");
 
             const userMoney = await Currencies.getMoney(event.senderID);
             if (userMoney < pack.price) {
-                return message.reply(`❌ 𝗜𝗻𝘀𝘂𝗳𝗳𝗶𝗰𝗶𝗲𝗻𝘁 𝗙𝘂𝗻𝗱𝘀!\nYou need ${pack.label} coins for this package.`);
+                return message.reply(`❌ 𝗜𝗻𝘀𝘂𝗳𝗳𝗶𝗰𝗶𝗲𝗻𝘁 𝗙𝘂𝗻𝗱𝘀!\nYou need ${pack.label} coins for ${pack.name}.`);
             }
 
             await Currencies.decreaseMoney(event.senderID, pack.price);
 
             let currentExpiry = Date.now();
-            if (vipDb[event.senderID] && vipDb[event.senderID].expiry > Date.now()) {
-                currentExpiry = vipDb[event.senderID].expiry;
+            let start = Date.now();
+            if (vipDb.users[event.senderID] && vipDb.users[event.senderID].expiry > Date.now()) {
+                currentExpiry = vipDb.users[event.senderID].expiry;
+                start = vipDb.users[event.senderID].start || Date.now();
             }
             
             const newExpiry = currentExpiry + (pack.days * 24 * 60 * 60 * 1000);
-            vipDb[event.senderID] = { expiry: newExpiry };
+            vipDb.users[event.senderID] = { expiry: newExpiry, start: start };
             fs.writeJsonSync(dbPath, vipDb);
 
-            return message.reply(`✅ 𝗦𝘂𝗰𝗰𝗲𝘀𝘀𝗳𝘂𝗹𝗹𝘆 𝗽𝘂𝗿𝗰𝗵𝗮𝘀𝗲𝗱 ${pack.days} 𝗗𝗮𝘆𝘀 𝗩𝗜𝗣!\n${pack.label} coins deducted from your balance.\nType '/vip info' to see your card!`);
+            return message.reply(`✅ 𝗦𝘂𝗰𝗰𝗲𝘀𝘀𝗳𝘂𝗹𝗹𝘆 𝗽𝘂𝗿𝗰𝗵𝗮𝘀𝗲𝗱 ${pack.name}!\n${pack.label} coins deducted.\nType '/vip info' to see your card!`);
         }
 
         // --- 3. SHOW LOCKED VIP COMMANDS LIST ---
         if (action === "cmd") {
-            const vipCmds = `👑 𝗩𝗜𝗣 𝗟𝗢𝗖𝗞𝗘𝗗 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦\n\n` +
-                            `• 𝗮𝗿𝘁 - Transform photos into various art styles.\n` +
-                            `• 𝗲𝗱𝗶𝘁 - Edit photos via AI prompts.\n` +
-                            `• 𝗽𝗮𝗶𝗿 - Pair with specific user via reply/mention.\n\n` +
-                            `💡 Buy VIP to get full access to these premium tools!`;
-            return message.reply(vipCmds);
+            let cmdText = `𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐕𝐈𝐏 𝐜𝐨𝐦𝐦𝐚𝐧𝐝\n\n`;
+            vipDb.commands.forEach((cmd, index) => {
+                cmdText += `${getUnicodeNumber(index + 1)}. ${cmd}\n`;
+            });
+            return message.reply(cmdText);
         }
 
-        // --- 4. ADMIN ADD VIP ---
+        // --- 4. SHOW VIP LIST ---
+        if (action === "list") {
+            const userIDs = Object.keys(vipDb.users);
+            if (userIDs.length === 0) return message.reply("No VIP members found.");
+            
+            let listText = `👑 𝗦𝗛𝗜𝗭𝗨𝗞𝗔 𝗩𝗜𝗣 𝗠𝗘𝗠𝗕𝗘𝗥𝗦\n\n`;
+            let count = 1;
+            
+            for (let uid of userIDs) {
+                if (vipDb.users[uid].expiry > Date.now()) {
+                    let name = "Unknown";
+                    try {
+                        const uData = await usersData.get(uid);
+                        name = uData.name;
+                    } catch(e) {}
+                    
+                    const startD = new Date(vipDb.users[uid].start || Date.now()).toLocaleDateString("en-GB");
+                    const endD = new Date(vipDb.users[uid].expiry).toLocaleDateString("en-GB");
+                    
+                    listText += `${count}. ${name}\n   Start: ${startD} | Exp: ${endD}\n`;
+                    count++;
+                }
+            }
+            return message.reply(listText);
+        }
+
+        // --- 5. ADMIN ADD (User or Command) ---
         if (action === "add" && isAdmin) {
-            const mentionID = Object.keys(event.mentions)[0] || args[1];
-            const days = parseInt(args[2] || args[args.length - 1]);
+            const type = args[1]?.toLowerCase();
+            if (type === "cmd") {
+                const cmdName = args.slice(2).join(" ");
+                if (!cmdName) return message.reply("❌ Format: /vip add cmd <name>");
+                if (!vipDb.commands.includes(cmdName)) {
+                    vipDb.commands.push(cmdName);
+                    fs.writeJsonSync(dbPath, vipDb);
+                }
+                return message.reply(`✅ Added '${cmdName}' to VIP command list.`);
+            } else {
+                // Add User
+                const mentionID = Object.keys(event.mentions)[0] || args[1];
+                const days = parseInt(args[2] || args[args.length - 1]);
+                if (!mentionID || isNaN(days)) return message.reply("❌ Format: /vip add @mention [days] OR /vip add cmd <name>");
 
-            if (!mentionID || isNaN(days)) return message.reply("❌ Format: /vip add @mention [days]");
-
-            const newExpiry = Date.now() + (days * 24 * 60 * 60 * 1000);
-            vipDb[mentionID] = { expiry: newExpiry };
-            fs.writeJsonSync(dbPath, vipDb);
-
-            return message.reply(`✅ Added VIP to user for ${days} days.`);
+                const newExpiry = Date.now() + (days * 24 * 60 * 60 * 1000);
+                vipDb.users[mentionID] = { expiry: newExpiry, start: Date.now() };
+                fs.writeJsonSync(dbPath, vipDb);
+                return message.reply(`✅ Added VIP to user for ${days} days.`);
+            }
         }
 
-        // --- 5. ADMIN REMOVE VIP ---
+        // --- 6. ADMIN REMOVE (User or Command) ---
         if (action === "remove" && isAdmin) {
-            const mentionID = Object.keys(event.mentions)[0] || args[1];
-            if (!mentionID || !vipDb[mentionID]) return message.reply("❌ User is not VIP or ID invalid.");
+            const type = args[1]?.toLowerCase();
+            if (type === "cmd") {
+                const cmdName = args.slice(2).join(" ");
+                if (!cmdName) return message.reply("❌ Format: /vip remove cmd <name>");
+                vipDb.commands = vipDb.commands.filter(c => c.toLowerCase() !== cmdName.toLowerCase());
+                fs.writeJsonSync(dbPath, vipDb);
+                return message.reply(`✅ Removed '${cmdName}' from VIP command list.`);
+            } else {
+                // Remove User
+                const mentionID = Object.keys(event.mentions)[0] || args[1];
+                if (!mentionID || !vipDb.users[mentionID]) return message.reply("❌ User is not VIP or ID invalid.");
 
-            delete vipDb[mentionID];
-            fs.writeJsonSync(dbPath, vipDb);
-            return message.reply("✅ Removed user's VIP status.");
+                delete vipDb.users[mentionID];
+                fs.writeJsonSync(dbPath, vipDb);
+                return message.reply("✅ Removed user's VIP status.");
+            }
         }
-
-        return message.reply("👑 𝗦𝗛𝗜𝗭𝗨𝗞𝗔 𝗩𝗜𝗣 𝗦𝗬𝗦𝗧𝗘𝗠\n- /vip info (View your card)\n- /vip buy (View packages)\n- /vip cmd (View VIP commands)\n- /vip buy [1/3/10] (Purchase)");
     }
 };
 
-// --- PREMIUM CANVAS CARD GENERATOR ---
+// --- HELPER: ROUNDED RECTANGLE FOR CANVAS ---
+function roundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fill();
+}
+
+// --- NEW DARK PREMIUM STORE MENU GENERATOR ---
+async function createStoreImage(uid, name, balance) {
+    const canvas = createCanvas(800, 1100);
+    const ctx = canvas.getContext("2d");
+
+    // 1. Dark Black Textured Background
+    ctx.fillStyle = "#0c0c14"; // Brighter deep blue/gray, but still very dark
+    ctx.fillRect(0, 0, 800, 1100);
+    
+    // Add subtle textured circuit/fractal lines
+    ctx.strokeStyle = "rgba(255, 215, 0, 0.05)"; // subtle gold texture
+    ctx.lineWidth = 1;
+    for(let i=0; i<1100; i+=25) {
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(800, i+20); ctx.stroke();
+    }
+    for(let i=0; i<800; i+=25) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i+20, 1100); ctx.stroke();
+    }
+
+    // 2. Header: Welcome Text with Bold text and icon
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 45px Arial";
+    ctx.fillText(`Hey ${name} 🎀`, 50, 80);
+    ctx.font = "35px Arial";
+    ctx.fillText("Select a plan using 'VIP buy <number>'", 50, 140);
+    ctx.fillText("Max Limit: 30 Days", 50, 190);
+
+    // 3. Redesigned Profile Card: Dark Glass effect
+    ctx.fillStyle = "#161626"; // subtle glass/metal
+    roundRect(ctx, 50, 230, 700, 140, 20);
+
+    try {
+        const avatarUrl = `https://graph.facebook.com/${uid}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+        const avatar = await loadImage(avatarUrl);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(120, 300, 50, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(avatar, 70, 250, 100, 100);
+        ctx.restore();
+        // Magenta Ring
+        ctx.beginPath();
+        ctx.arc(120, 300, 50, 0, Math.PI * 2);
+        ctx.strokeStyle = "#ff00ff"; // Glowing Magenta
+        ctx.lineWidth = 4;
+        ctx.stroke();
+    } catch(e) {}
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 30px Arial";
+    ctx.fillText(name, 200, 290);
+    ctx.fillStyle = "#f1c40f"; // Gold
+    ctx.font = "25px Arial";
+    ctx.fillText(`Baby, Your Balance: ${balance}`, 200, 330);
+
+    // 4. Main Section Title
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 30px Arial";
+    ctx.fillText("👑 SHIZUKA VIP PREMIUM STORE", 50, 430);
+
+    // 5. Packages Grid: Detailed dark cards with icons and golden text
+    let startX = 50;
+    let startY = 480;
+    
+    // Add glowing outlines to grid cards
+    ctx.strokeStyle = "rgba(0, 255, 204, 0.2)"; // Cyan glow
+    ctx.lineWidth = 1;
+
+    // Redesigned package icons
+    const packIcons = {
+        "1": "⏱️", "2": "⏱️⏱️", "3": "⏱️📅", "4": "⏱️📅📅", "5": "📅", "6": "📅⚙️", "7": "📅📅", "8": "📅📅🌟", "9": "📅📅🪐", "10": "📅📅📅👑🌟"
+    };
+
+    for (let i = 1; i <= 10; i++) {
+        const pack = packages[i.toString()];
+        
+        ctx.fillStyle = "#1a1a2e"; // subtle metallic blue/black
+        roundRect(ctx, startX, startY, 330, 100, 15);
+        ctx.strokeRect(startX, startY, 330, 100); // add subtle glowing outline
+        
+        ctx.fillStyle = "#00ffcc"; // Glowing Cyan for number and icon
+        ctx.font = "bold 25px Arial";
+        ctx.fillText(`${i}.`, startX + 20, startY + 55);
+        ctx.font = "25px Arial";
+        ctx.fillText(packIcons[i.toString()], startX + 60, startY + 55);
+        
+        ctx.fillStyle = "#ffffff"; // Bold white for package name
+        ctx.font = "bold 22px Arial";
+        ctx.fillText(pack.name, startX + 20, startY + 40);
+        
+        ctx.fillStyle = "#f1c40f"; // Polished Gold for cost
+        ctx.font = "bold 20px Arial";
+        ctx.fillText(`Cost: ${pack.label}`, startX + 20, startY + 75);
+
+        // Grid Math
+        if (i % 2 !== 0) {
+            startX = 420; // Move to right col
+        } else {
+            startX = 50;  // Reset to left col
+            startY += 120; // Move down a row
+        }
+    }
+
+    const tempPath = path.join(dataFolder, `vip_store_${uid}.png`);
+    fs.writeFileSync(tempPath, canvas.toBuffer("image/png"));
+    return tempPath;
+}
+
+// --- BRIGHTER PREMIUM CARD GENERATOR (DARK GLASS STYLE) ---
 async function createVipCard(uid, name, expiry) {
     const canvas = createCanvas(800, 450);
     const ctx = canvas.getContext("2d");
 
-    // 1. Dark Metallic Background
-    const bgGradient = ctx.createLinearGradient(0, 0, 800, 450);
-    bgGradient.addColorStop(0, "#1e1e1e");
-    bgGradient.addColorStop(0.3, "#383838");
-    bgGradient.addColorStop(0.5, "#141414");
-    bgGradient.addColorStop(0.8, "#2d2d2d");
-    bgGradient.addColorStop(1, "#0a0a0a");
-    ctx.fillStyle = bgGradient;
+    // Brighter Lighter Gradient Background for better readability
+    const gradient = ctx.createLinearGradient(0, 0, 800, 450);
+    gradient.addColorStop(0, "#2a2a3a"); // Lighter dark blue
+    gradient.addColorStop(1, "#3f3f5a");
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 800, 450);
 
-    // 2. Premium Metallic Gold Gradient (for text and borders)
-    const goldGradient = ctx.createLinearGradient(0, 0, 800, 450);
-    goldGradient.addColorStop(0, "#BF953F");
-    goldGradient.addColorStop(0.25, "#FCF6BA");
-    goldGradient.addColorStop(0.5, "#B38728");
-    goldGradient.addColorStop(0.75, "#FBF5B7");
-    goldGradient.addColorStop(1, "#AA771C");
-
-    // 3. Inner Gold Border with Shadow
-    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
-    ctx.shadowBlur = 15;
-    ctx.shadowOffsetX = 5;
-    ctx.shadowOffsetY = 5;
-    
-    ctx.strokeStyle = goldGradient;
-    ctx.lineWidth = 6;
+    // Glowing Gold Border
+    ctx.strokeStyle = "#FFD700"; // Glowing Gold
+    ctx.lineWidth = 8;
     ctx.strokeRect(15, 15, 770, 420);
-    
-    // Reset shadow for background elements
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
 
-    // 4. Subtle Hex/Line Pattern for texture
-    ctx.strokeStyle = "rgba(191, 149, 63, 0.08)";
-    ctx.lineWidth = 1.5;
-    for (let i = -400; i < 800; i += 40) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i + 450, 450);
-        ctx.stroke();
+    // Design Lines (More visible with cyan glow)
+    ctx.strokeStyle = "rgba(0, 255, 204, 0.15)";
+    ctx.lineWidth = 1;
+    for(let i=0; i<800; i+=30) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i-100, 450); ctx.stroke();
     }
 
-    // 5. Card Header
-    ctx.fillStyle = goldGradient;
-    ctx.font = "bold 38px 'Arial'"; // Using standard font but enhanced with gradient & shadow
-    ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetY = 3;
-    ctx.fillText("SHIZUKA PREMIUM VIP", 40, 75);
+    ctx.fillStyle = "#FFD700"; // Bold Gold for title
+    ctx.font = "bold 40px Arial";
+    ctx.fillText("SHIZUKA PREMIUM VIP", 40, 70);
 
-    // 6. User Avatar
     try {
         const avatarUrl = `https://graph.facebook.com/${uid}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
         const avatar = await loadImage(avatarUrl);
-        
-        // Avatar Ring Shadow
-        ctx.shadowColor = "rgba(0,0,0, 0.8)";
-        ctx.shadowBlur = 20;
-        
         ctx.save();
         ctx.beginPath();
-        ctx.arc(130, 240, 85, 0, Math.PI * 2);
+        ctx.arc(120, 220, 80, 0, Math.PI * 2);
         ctx.closePath();
         ctx.clip();
-        ctx.drawImage(avatar, 45, 155, 170, 170);
+        ctx.drawImage(avatar, 40, 140, 160, 160);
         ctx.restore();
         
-        // Golden Ring around Avatar
         ctx.beginPath();
-        ctx.arc(130, 240, 85, 0, Math.PI * 2);
-        ctx.strokeStyle = goldGradient;
-        ctx.lineWidth = 6;
+        ctx.arc(120, 220, 80, 0, Math.PI * 2);
+        ctx.strokeStyle = "#FFD700"; // Bold Gold Ring
+        ctx.lineWidth = 5;
         ctx.stroke();
-    } catch(e) { /* avatar skip */ }
+    } catch(e) { }
 
-    // Reset Shadows for clean text
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
+    ctx.fillStyle = "#FFFFFF"; // Bold white for name
+    ctx.font = "bold 45px Arial";
+    ctx.fillText(name.toUpperCase(), 230, 200);
 
-    // 7. User Details
-    ctx.fillStyle = "#FFFFFF"; // Crisp white for name to pop against gold
-    ctx.font = "bold 42px Arial";
-    ctx.fillText(name.toUpperCase(), 250, 220);
+    ctx.fillStyle = "#E0E0E0"; // Whiter grey for ID
+    ctx.font = "25px Arial";
+    ctx.fillText(`MEMBER ID: ${uid}`, 230, 240);
 
-    ctx.fillStyle = "#B0B0B0"; // Silver color for ID
-    ctx.font = "bold 22px Arial";
-    ctx.fillText(`MEMBER ID: ${uid}`, 250, 260);
-
-    // 8. VIP Expiry Details
-    ctx.fillStyle = goldGradient;
-    ctx.font = "bold 20px Arial";
+    // VALID THRU (Bottom Right - Bold Golden Text)
+    ctx.fillStyle = "#FFD700";
+    ctx.font = "bold 25px Arial";
     ctx.textAlign = "right";
-    ctx.fillText("VALID THRU", 745, 380);
-    
-    ctx.font = "bold 28px Arial";
+    ctx.fillText("VALID THRU", 750, 390);
+    ctx.font = "bold 22px Arial";
     ctx.fillStyle = "#FFFFFF";
-    ctx.fillText(expiry, 745, 415);
-
-    // 9. Faux "Chip" (Simulates a physical credit card chip)
-    ctx.shadowBlur = 5;
-    ctx.strokeStyle = goldGradient;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(40, 360, 50, 40);
-    ctx.strokeRect(45, 365, 40, 30);
-    ctx.beginPath(); ctx.moveTo(40, 380); ctx.lineTo(55, 380); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(90, 380); ctx.lineTo(75, 380); ctx.stroke();
-    
-    // 10. Glossy Reflection Overlay (Makes it look like shiny plastic/metal)
-    ctx.shadowBlur = 0;
-    const gloss = ctx.createLinearGradient(0, 0, 800, 450);
-    gloss.addColorStop(0, "rgba(255, 255, 255, 0.15)");
-    gloss.addColorStop(0.4, "rgba(255, 255, 255, 0.05)");
-    gloss.addColorStop(0.41, "rgba(255, 255, 255, 0)");
-    gloss.addColorStop(1, "rgba(255, 255, 255, 0)");
-    
-    ctx.fillStyle = gloss;
-    ctx.beginPath();
-    ctx.moveTo(15, 15);
-    ctx.lineTo(785, 15);
-    ctx.lineTo(785, 435);
-    ctx.lineTo(15, 435);
-    ctx.closePath();
-    ctx.fill();
+    ctx.fillText(expiry, 750, 420);
 
     const tempPath = path.join(dataFolder, `vip_card_${uid}.png`);
     fs.writeFileSync(tempPath, canvas.toBuffer("image/png"));
