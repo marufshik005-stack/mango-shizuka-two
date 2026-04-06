@@ -50,7 +50,7 @@ module.exports = {
         guide: "{pn} | buy | info | cmd | list | add | remove"
     },
 
-    onStart: async function ({ api, event, args, message, Currencies, usersData }) {
+    onStart: async function ({ api, event, args, message, usersData }) {
         const vipDb = fs.readJsonSync(dbPath);
         const action = args[0]?.toLowerCase();
         const isAdmin = global.GoatBot.config.adminBot.includes(event.senderID);
@@ -96,9 +96,18 @@ module.exports = {
         if (action === "buy") {
             const packKey = args[1];
             
+            // 1. Fetch user money properly using GoatBot's usersData
+            let uData = {};
+            try {
+                uData = await usersData.get(event.senderID);
+            } catch (e) {
+                return message.reply("❌ Error fetching user data.");
+            }
+            // Fallback to 0 if the user doesn't have a money property yet
+            const userMoney = uData.money || 0; 
+            
             // If no number provided, show the graphical store menu
             if (!packKey) {
-                const userMoney = await Currencies.getMoney(event.senderID);
                 const formatMoney = (userMoney / M).toFixed(1) + "M";
                 message.reply("🛒 𝗢𝗽𝗲𝗻𝗶𝗻𝗴 𝗩𝗜𝗣 𝗦𝘁𝗼𝗿𝗲...");
                 
@@ -110,7 +119,7 @@ module.exports = {
                         if (fs.existsSync(storeImgPath)) fs.unlinkSync(storeImgPath);
                     });
                 } catch(e) {
-                    return message.reply("❌ Error opening store.");
+                    return message.reply("❌ Error opening store: " + e.message);
                 }
             }
 
@@ -118,12 +127,14 @@ module.exports = {
             const pack = packages[packKey];
             if (!pack) return message.reply("❌ Invalid package number. Please check the store image.");
 
-            const userMoney = await Currencies.getMoney(event.senderID);
             if (userMoney < pack.price) {
-                return message.reply(`❌ 𝗜𝗻𝘀𝘂𝗳𝗳𝗶𝗰𝗶𝗲𝗻𝘁 𝗙𝘂𝗻𝗱𝘀!\nYou need ${pack.label} coins for ${pack.name}.`);
+                return message.reply(`❌ 𝗜𝗻𝘀𝘂𝗳𝗳𝗶𝗰𝗶𝗲𝗻𝘁 𝗙𝘂𝗻𝗱𝘀!\nYou need ${pack.label} coins for ${pack.name}. Your balance: ${(userMoney/M).toFixed(1)}M.`);
             }
 
-            await Currencies.decreaseMoney(event.senderID, pack.price);
+            // 2. Deduct money properly using GoatBot's usersData
+            await usersData.set(event.senderID, {
+                money: userMoney - pack.price
+            });
 
             let currentExpiry = Date.now();
             let start = Date.now();
