@@ -1,11 +1,11 @@
 const fs = require("fs-extra");
-const request = require("request");
+const axios = require("axios");
 
 module.exports = {
   config: {
     name: "groupinfo",
     aliases: ["boxinfo"],
-    version: "2.0",
+    version: "2.1",
     author: "Ew'r Saim",
     countDown: 5,
     role: 0,
@@ -18,74 +18,59 @@ module.exports = {
   },
 
   onStart: async function ({ api, event }) {
-    const threadInfo = await api.getThreadInfo(event.threadID);
-    const memCount = threadInfo.participantIDs.length;
-    const genderMale = [];
-    const genderFemale = [];
-    const genderUnknown = [];
-    const adminList = [];
+    const { threadID, messageID } = event;
+    const path = __dirname + `/cache/${threadID}_info.png`;
 
-    // Gender count
-    for (const user of threadInfo.userInfo) {
-      const gender = user.gender;
-      if (gender === "MALE") genderMale.push(user);
-      else if (gender === "FEMALE") genderFemale.push(user);
-      else genderUnknown.push(user.name);
-    }
+    try {
+      const threadInfo = await api.getThreadInfo(threadID);
+      const { threadName, participantIDs, userInfo, adminIDs, messageCount, emoji, approvalMode, imageSrc } = threadInfo;
 
-    // Admins
-    for (const admin of threadInfo.adminIDs) {
-      const info = await api.getUserInfo(admin.id);
-      adminList.push(info[admin.id].name);
-    }
+      // 1. Efficiently count genders
+      const males = userInfo.filter(u => u.gender === "MALE").length;
+      const females = userInfo.filter(u => u.gender === "FEMALE").length;
+      const unknown = participantIDs.length - (males + females);
 
-    const approvalMode = threadInfo.approvalMode ? "✅ On" : "❌ Off";
+      // 2. Optimized Admin Info (One API call instead of a loop)
+      const adminNames = [];
+      const adminFetch = await api.getUserInfo(adminIDs.map(a => a.id));
+      for (const id in adminFetch) {
+        adminNames.push(adminFetch[id].name);
+      }
 
-    const msg = 
+      const msg = 
 `╔════》 👥 GROUP INFO 《═══╗
-🌐 Name: ${threadInfo.threadName}
-🆔 ID: ${threadInfo.threadID}
-💬 Emoji: ${threadInfo.emoji || "None"}
-📩 Messages: ${threadInfo.messageCount.toLocaleString()}
-👥 Members: ${memCount}
-👨 Males: ${genderMale.length}
-👩 Females: ${genderFemale.length}
-❓ Unknown: ${genderUnknown.length}
-🛡️ Admin Count: ${threadInfo.adminIDs.length}
+🌐 Name: ${threadName || "Unnamed Group"}
+🆔 ID: ${threadID}
+💬 Emoji: ${emoji || "None"}
+📩 Messages: ${messageCount.toLocaleString()}
+👥 Members: ${participantIDs.length}
+👨 Males: ${males}
+👩 Females: ${females}
+❓ Unknown: ${unknown}
+🛡️ Admin Count: ${adminIDs.length}
 📋 Admins:
-${adminList.map(name => `   • ${name}`).join("\n")}
-🔒 Approval Mode: ${approvalMode}
+${adminNames.map(name => `    • ${name}`).join("\n")}
+🔒 Approval Mode: ${approvalMode ? "✅ On" : "❌ Off"}
 ╚═════════════════════════╝
 
-🛠️ Made With by Ew'r Saim.
-`;
+🛠️ Made With by Ew'r Saim.`;
 
-    const imagePath = `${__dirname}/cache/groupinfo.png`;
+      // 3. Handling Image with Axios
+      if (imageSrc) {
+        const response = await axios.get(imageSrc, { responseType: 'arraybuffer' });
+        fs.writeFileSync(path, Buffer.from(response.data, 'utf-8'));
+        
+        return api.sendMessage({
+          body: msg,
+          attachment: fs.createReadStream(path)
+        }, threadID, () => fs.unlinkSync(path), messageID);
+      } else {
+        return api.sendMessage(msg, threadID, messageID);
+      }
 
-    // Download group image if available
-    if (threadInfo.imageSrc) {
-      request(encodeURI(threadInfo.imageSrc))
-        .pipe(fs.createWriteStream(imagePath))
-        .on("close", () => {
-          api.sendMessage(
-            {
-              body: msg,
-              attachment: fs.createReadStream(imagePath),
-            },
-            event.threadID,
-            () => fs.unlinkSync(imagePath),
-            event.messageID
-          );
-        });
-    } else {
-      // No image case
-      api.sendMessage(
-        {
-          body: msg
-        },
-        event.threadID,
-        event.messageID
-      );
+    } catch (error) {
+      console.error(error);
+      return api.sendMessage("❌ Error fetching group info.", threadID, messageID);
     }
   },
 };
