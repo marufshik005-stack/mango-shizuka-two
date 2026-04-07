@@ -40,7 +40,7 @@ function getUnicodeNumber(num) {
 module.exports = {
     config: {
         name: "vip",
-        version: "1.1",
+        version: "1.2",
         author: "zisan",
         countDown: 5,
         role: 0,
@@ -82,7 +82,7 @@ module.exports = {
             try {
                 const imgPath = await createVipCard(event.senderID, senderName, expiryText);
                 return message.reply({
-                    body: `👑 𝗦𝗛𝗜𝗭𝗨𝗞𝗔 𝗩𝗜𝗣 𝗠𝗘𝗠𝗕𝗘𝗥 👑\n𝗡𝗮𝗺𝗲: ${senderName}\n𝗩𝗮𝗹𝗶𝗱 𝗧𝗵𝗿𝘂: ${expiryText}`,
+                    body: ` 𝗦𝗛𝗜𝗭𝗨𝗞𝗔 𝗩𝗜𝗣 𝗠𝗘𝗠𝗕𝗘𝗥 \n𝗡𝗮𝗺𝗲: ${senderName}\n𝗩𝗮𝗹𝗶𝗱 𝗧𝗵𝗿𝘂: ${expiryText}`,
                     attachment: fs.createReadStream(imgPath)
                 }, () => {
                     if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
@@ -106,11 +106,14 @@ module.exports = {
             
             if (!packKey) {
                 const formatMoney = (userMoney / M).toFixed(1) + "M";
-                message.reply("🛒 𝗢𝗽𝗲𝗻𝗶𝗻𝗴 𝗩𝗜𝗣 𝗦𝘁𝗼𝗿𝗲...");
+                
+                // Text moved outside the image and made bold
+                const storeMsg = "🛒 **𝗢𝗽𝗲𝗻𝗶𝗻𝗴 𝗩𝗜𝗣 𝗦𝘁𝗼𝗿𝗲...**\n\n**Select a plan using '/vip buy <number>'**\n**Max Limit: 30 Days**";
                 
                 try {
                     const storeImgPath = await createStoreImage(event.senderID, senderName, formatMoney);
                     return message.reply({
+                        body: storeMsg,
                         attachment: fs.createReadStream(storeImgPath)
                     }, () => {
                         if (fs.existsSync(storeImgPath)) fs.unlinkSync(storeImgPath);
@@ -178,7 +181,7 @@ module.exports = {
             return message.reply(listText);
         }
 
-        // --- 5. ADMIN ADD ---
+        // --- 5. ADMIN ADD (FIXED FOR REPLY AND MENTIONS) ---
         if (action === "add" && isAdmin) {
             const type = args[1]?.toLowerCase();
             if (type === "cmd") {
@@ -190,9 +193,26 @@ module.exports = {
                 }
                 return message.reply(`✅ Added '${cmdName}' to VIP command list.`);
             } else {
-                const mentionID = Object.keys(event.mentions)[0] || args[1];
-                const days = parseInt(args[2] || args[args.length - 1]);
-                if (!mentionID || isNaN(days)) return message.reply("❌ Format: /vip add @mention [days]");
+                let mentionID = "";
+                let days = NaN;
+
+                // Support for replying to a user's message
+                if (event.type === "message_reply") {
+                    mentionID = event.messageReply.senderID;
+                    days = parseInt(args[1]);
+                } 
+                // Support for mentioning a user
+                else if (Object.keys(event.mentions).length > 0) {
+                    mentionID = Object.keys(event.mentions)[0];
+                    days = parseInt(args[args.length - 1]); // Assumes format: /vip add @user 5
+                } 
+                // Support for direct UID input
+                else {
+                    mentionID = args[1];
+                    days = parseInt(args[2]);
+                }
+
+                if (!mentionID || isNaN(days)) return message.reply("❌ Format: /vip add @mention [days] OR Reply to user with /vip add [days]");
 
                 const newExpiry = Date.now() + (days * 24 * 60 * 60 * 1000);
                 vipDb.users[mentionID] = { expiry: newExpiry, start: Date.now() };
@@ -211,7 +231,16 @@ module.exports = {
                 fs.writeJsonSync(dbPath, vipDb);
                 return message.reply(`✅ Removed '${cmdName}' from VIP command list.`);
             } else {
-                const mentionID = Object.keys(event.mentions)[0] || args[1];
+                let mentionID = "";
+                
+                if (event.type === "message_reply") {
+                    mentionID = event.messageReply.senderID;
+                } else if (Object.keys(event.mentions).length > 0) {
+                    mentionID = Object.keys(event.mentions)[0];
+                } else {
+                    mentionID = args[1];
+                }
+
                 if (!mentionID || !vipDb.users[mentionID]) return message.reply("❌ User is not VIP or ID invalid.");
 
                 delete vipDb.users[mentionID];
@@ -236,17 +265,17 @@ function roundRect(ctx, x, y, width, height, radius) {
     ctx.quadraticCurveTo(x, y, x + radius, y);
     ctx.closePath();
     ctx.fill();
-    ctx.stroke();
+    if (ctx.lineWidth > 0) ctx.stroke();
 }
 
-// --- HELPER: HONEYCOMB TEXTURE (From ATM Card image) ---
+// --- HELPER: HONEYCOMB TEXTURE ---
 function drawHoneycombBackground(ctx, width, height) {
-    const r = 18; // Hexagon radius
+    const r = 18; 
     const w = Math.sqrt(3) * r;
     const h = 2 * r;
     
     ctx.lineWidth = 1.5;
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.035)"; // Very subtle bright lines for texture
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.025)"; 
 
     for (let y = 0, row = 0; y < height + h; y += h * 0.75, row++) {
         for (let x = 0; x < width + w; x += w) {
@@ -268,101 +297,106 @@ function drawHoneycombBackground(ctx, width, height) {
     }
 }
 
-// --- REDESIGNED DARK PREMIUM STORE MENU ---
+// --- REDESIGNED DARK PREMIUM STORE MENU (IMPROVED COLORS & NO EMOJIS) ---
 async function createStoreImage(uid, name, balance) {
-    const canvas = createCanvas(800, 1100);
+    // Shorter height since we removed header text
+    const canvas = createCanvas(800, 1000); 
     const ctx = canvas.getContext("2d");
 
-    // 1. Solid Dark Background matching ATM card
-    ctx.fillStyle = "#111115"; 
-    ctx.fillRect(0, 0, 800, 1100);
+    // 1. Sleek Gradient Background
+    const bgGradient = ctx.createLinearGradient(0, 0, 0, 1000);
+    bgGradient.addColorStop(0, "#0b0c10"); // Very dark charcoal
+    bgGradient.addColorStop(1, "#1f2833"); // Deep metallic slate
+    ctx.fillStyle = bgGradient; 
+    ctx.fillRect(0, 0, 800, 1000);
     
     // 2. Draw Honeycomb Texture
-    drawHoneycombBackground(ctx, 800, 1100);
+    drawHoneycombBackground(ctx, 800, 1000);
 
     // 3. Header Text
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 45px Arial";
-    ctx.fillText(`Hey ${name} 🎀`, 50, 80);
-    ctx.font = "35px Arial";
-    ctx.fillText("Select a plan using 'VIP buy <number>'", 50, 140);
-    ctx.fillText("Max Limit: 30 Days", 50, 190);
+    ctx.fillText(`Hello, ${name} ✨`, 50, 80);
 
     // 4. Redesigned Profile Card
-    ctx.fillStyle = "rgba(30, 30, 36, 0.8)"; // Slightly lighter box
-    ctx.strokeStyle = "rgba(255, 215, 0, 0.2)"; // Subtle gold trim
+    ctx.fillStyle = "rgba(25, 25, 30, 0.7)"; 
+    ctx.strokeStyle = "rgba(213, 160, 58, 0.3)"; // Muted premium gold
     ctx.lineWidth = 2;
-    roundRect(ctx, 50, 230, 700, 140, 20);
+    roundRect(ctx, 50, 130, 700, 140, 20);
 
     try {
         const avatarUrl = `https://graph.facebook.com/${uid}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
         const avatar = await loadImage(avatarUrl);
         ctx.save();
         ctx.beginPath();
-        ctx.arc(120, 300, 50, 0, Math.PI * 2);
+        ctx.arc(120, 200, 50, 0, Math.PI * 2);
         ctx.closePath();
         ctx.clip();
-        ctx.drawImage(avatar, 70, 250, 100, 100);
+        ctx.drawImage(avatar, 70, 150, 100, 100);
         ctx.restore();
-        // Gold Ring instead of Magenta to match ATM vibes
+        
         ctx.beginPath();
-        ctx.arc(120, 300, 50, 0, Math.PI * 2);
-        ctx.strokeStyle = "#f1c40f"; 
-        ctx.lineWidth = 4;
+        ctx.arc(120, 200, 50, 0, Math.PI * 2);
+        ctx.strokeStyle = "#FBEA9D"; 
+        ctx.lineWidth = 3;
         ctx.stroke();
     } catch(e) {}
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 30px Arial";
-    ctx.fillText(name, 200, 290);
-    ctx.fillStyle = "#f1c40f"; // Gold
-    ctx.font = "25px Arial";
-    ctx.fillText(`Baby, Your Balance: ${balance}`, 200, 330);
+    ctx.font = "bold 32px Arial";
+    ctx.fillText(name, 200, 190);
+    ctx.fillStyle = "#c5a059"; // Elegant gold
+    ctx.font = "24px Arial";
+    ctx.fillText(`Available Balance: ${balance}`, 200, 230);
 
     // 5. Main Section Title
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 30px Arial";
-    ctx.fillText("👑 SHIZUKA VIP PREMIUM STORE", 50, 430);
+    ctx.font = "bold 28px Arial";
+    ctx.fillText(" VIP PREMIUM PACKAGES", 50, 330);
 
-    // 6. Packages Grid: FIXED TEXT OVERLAP
+    // 6. Packages Grid: Centered text, no emojis
     let startX = 50;
-    let startY = 480;
-
-    const packIcons = {
-        "1": "⏱️", "2": "⏱️⏱️", "3": "⏱️📅", "4": "⏱️📅📅", "5": "📅", "6": "📅⚙️", "7": "📅📅", "8": "📅📅🌟", "9": "📅📅🪐", "10": "📅📅📅👑"
-    };
+    let startY = 370;
 
     for (let i = 1; i <= 10; i++) {
         const pack = packages[i.toString()];
         
-        ctx.fillStyle = "rgba(22, 22, 28, 0.9)"; // Darker card background
-        ctx.strokeStyle = "rgba(0, 255, 204, 0.4)"; // Cyan border
-        ctx.lineWidth = 1.5;
-        roundRect(ctx, startX, startY, 330, 100, 15);
-        
-        // Number and Name (Top Row)
-        ctx.fillStyle = "#00ffcc"; // Bright Cyan Number
-        ctx.font = "bold 22px Arial";
-        ctx.fillText(`${i}.`, startX + 20, startY + 35);
-        
-        ctx.fillStyle = "#ffffff"; // Bold white name
-        ctx.fillText(pack.name, startX + 55, startY + 35);
-        
-        // Cost (Bottom Row)
-        ctx.fillStyle = "#f1c40f"; // Polished Gold for cost
-        ctx.font = "bold 20px Arial";
-        ctx.fillText(`Cost: ${pack.label}`, startX + 20, startY + 75);
+        // Individual Card Gradient
+        const cardGrad = ctx.createLinearGradient(startX, startY, startX, startY + 100);
+        cardGrad.addColorStop(0, "rgba(35, 35, 45, 0.95)");
+        cardGrad.addColorStop(1, "rgba(20, 20, 26, 0.95)");
 
-        // Icon (Far Right side)
-        ctx.font = "28px Arial";
-        ctx.fillText(packIcons[i.toString()], startX + 250, startY + 60);
+        ctx.fillStyle = cardGrad;
+        ctx.strokeStyle = "rgba(213, 160, 58, 0.25)"; // Subtle Gold border
+        ctx.lineWidth = 1;
+        roundRect(ctx, startX, startY, 330, 100, 12);
+        
+        // Number Badge
+        ctx.fillStyle = "rgba(213, 160, 58, 0.15)";
+        roundRect(ctx, startX + 15, startY + 25, 50, 50, 10);
+        ctx.fillStyle = "#FBEA9D"; 
+        ctx.font = "bold 24px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(`${i}`, startX + 40, startY + 58);
+        
+        ctx.textAlign = "left"; // reset alignment
+        
+        // Name
+        ctx.fillStyle = "#ffffff"; 
+        ctx.font = "bold 22px Arial";
+        ctx.fillText(pack.name, startX + 85, startY + 45);
+        
+        // Cost
+        ctx.fillStyle = "#c5a059"; 
+        ctx.font = "bold 18px Arial";
+        ctx.fillText(`Cost: ${pack.label}`, startX + 85, startY + 75);
 
         // Grid Math
         if (i % 2 !== 0) {
-            startX = 420; // Move to right col
+            startX = 420; 
         } else {
-            startX = 50;  // Reset to left col
-            startY += 120; // Move down a row
+            startX = 50;  
+            startY += 120; 
         }
     }
 
@@ -376,14 +410,10 @@ async function createVipCard(uid, name, expiry) {
     const canvas = createCanvas(800, 450);
     const ctx = canvas.getContext("2d");
 
-    // 1. Dark Premium Background matching reference
     ctx.fillStyle = "#111115";
     ctx.fillRect(0, 0, 800, 450);
-    
-    // 2. Add Honeycomb Texture
     drawHoneycombBackground(ctx, 800, 450);
 
-    // 3. Bright Gold Gradient
     const goldGradient = ctx.createLinearGradient(0, 0, 800, 450);
     goldGradient.addColorStop(0, "#FBEA9D"); 
     goldGradient.addColorStop(0.3, "#D5A03A"); 
@@ -391,7 +421,6 @@ async function createVipCard(uid, name, expiry) {
     goldGradient.addColorStop(0.7, "#B37B22"); 
     goldGradient.addColorStop(1, "#FBEA9D");
 
-    // 4. Inner Gold Border
     ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
     ctx.shadowBlur = 10;
     ctx.shadowOffsetX = 3;
@@ -405,7 +434,6 @@ async function createVipCard(uid, name, expiry) {
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
-    // 5. Card Header
     ctx.fillStyle = "#FFFFFF";
     ctx.font = "bold 32px Arial"; 
     ctx.fillText("SHIZUKA BANK", 40, 70);
@@ -414,7 +442,6 @@ async function createVipCard(uid, name, expiry) {
     ctx.font = "16px Arial";
     ctx.fillText("PREMIUM ELITE", 42, 95);
 
-    // 6. User Avatar
     try {
         const avatarUrl = `https://graph.facebook.com/${uid}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
         const avatar = await loadImage(avatarUrl);
@@ -437,12 +464,9 @@ async function createVipCard(uid, name, expiry) {
         ctx.stroke();
     } catch(e) { }
 
-    // 7. Faux "EMV Chip"
     ctx.shadowBlur = 3;
     ctx.shadowColor = "rgba(0,0,0,0.5)";
-    
     ctx.fillStyle = goldGradient;
-    // Drawing a simple rounded rect chip
     ctx.beginPath();
     ctx.moveTo(40 + 8, 140);
     ctx.lineTo(40 + 70 - 8, 140);
@@ -455,7 +479,6 @@ async function createVipCard(uid, name, expiry) {
     ctx.quadraticCurveTo(40, 140, 40 + 8, 140);
     ctx.fill();
 
-    // 8. Fake Card Number / Formatting
     ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
     ctx.shadowBlur = 5;
 
@@ -464,12 +487,10 @@ async function createVipCard(uid, name, expiry) {
     ctx.fillText("MEMBER ID", 40, 240);
     
     ctx.fillStyle = "#FFFFFF"; 
-    ctx.font = "bold 44px monospace"; // Monospace gives a good bank card number look
-    // Break UID into 4 chunks safely just for aesthetics
+    ctx.font = "bold 44px monospace"; 
     const displayId = (uid + "000000000000").substring(0, 16).match(/.{1,4}/g).join("  ");
     ctx.fillText(displayId, 40, 290);
 
-    // 9. Name and Expiry
     ctx.fillStyle = "#FFFFFF";
     ctx.font = "bold 26px Arial";
     ctx.fillText(name.toUpperCase(), 40, 390);
@@ -482,12 +503,10 @@ async function createVipCard(uid, name, expiry) {
     ctx.font = "bold 24px Arial";
     ctx.fillText(expiry, 500, 395);
 
-    // Logo spoof in bottom right
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "italic bold 40px Arial";
-    ctx.fillText("VISA", 670, 395);
-
-    // 10. Glossy Reflection Overlay
+    ctx.font = "italic bold 35px Arial";
+    ctx.fillText("ELITE", 670, 395); 
+    
     ctx.shadowBlur = 0;
     const gloss = ctx.createLinearGradient(0, 0, 800, 450);
     gloss.addColorStop(0, "rgba(255, 255, 255, 0.15)");
