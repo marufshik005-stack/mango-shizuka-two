@@ -1,4 +1,6 @@
 const axios = require("axios");
+// ইউজারদের কুলডাউন সময় সেভ করে রাখার জন্য একটি Map তৈরি করা হলো
+const userCooldowns = new Map();
 
 const baseApiUrl = async () => {
         const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
@@ -84,6 +86,18 @@ module.exports = {
         },
 
         onStart: async function ({ api, event, getLang }) {
+               const senderID = event.senderID;
+               const cooldownTime = 10 * 1000; // ১০ সেকেন্ড লিমিট
+               const now = Date.now();
+
+               if (userCooldowns.has(senderID)) {
+                   const expirationTime = userCooldowns.get(senderID) + cooldownTime;
+                   if (now < expirationTime) {
+                         const timeLeft = ((expirationTime - now) / 1000).toFixed(1);
+                         return api.sendMessage(`⏳ একটু অপেক্ষা করো বেবি! আবার গেম খেলতে পারবে ${timeLeft} সেকেন্ড পর।`, event.threadID, event.messageID);
+                       }
+               }
+                userCooldowns.set(senderID, now);
                 try {
                         const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68); 
                         if (this.config.author !== authorName) return;
