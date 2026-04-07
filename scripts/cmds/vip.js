@@ -3,9 +3,8 @@ const path = require("path");
 const { createCanvas, loadImage } = require("canvas");
 const mongoose = require("mongoose");
 
-// --- MongoDB Model Import ---
-// তোমার প্রজেক্টের পাথ অনুযায়ী নিচের লাইনটি ঠিক করে নিও
-const Vip = require("../../models/Vip"); 
+// scripts/cmds/vip.js ফাইলের ভেতরে এভাবে লিখবে:
+const Vip = require("../../database/models/vip");
 
 const dataFolder = path.join(__dirname, "../../data");
 const dbPath = path.join(dataFolder, "vip_config.json");
