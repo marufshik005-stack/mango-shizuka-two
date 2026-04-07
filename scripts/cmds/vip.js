@@ -1,24 +1,22 @@
 const fs = require("fs-extra");
 const path = require("path");
 const { createCanvas, loadImage } = require("canvas");
+const mongoose = require("mongoose");
 
-// Database & Constant setup
+// --- MongoDB Model Import ---
+// তোমার প্রজেক্টের পাথ অনুযায়ী নিচের লাইনটি ঠিক করে নিও
+const Vip = require("../../models/Vip"); 
+
 const dataFolder = path.join(__dirname, "../../data");
-const dbPath = path.join(dataFolder, "vip.json");
-const M = 1000000; // 1 Million
+const dbPath = path.join(dataFolder, "vip_config.json");
+const M = 1000000;
 
+// Config file for static data like command lists
 if (!fs.existsSync(dataFolder)) fs.mkdirSync(dataFolder, { recursive: true });
-if (!fs.existsSync(dbPath)) fs.writeJsonSync(dbPath, { users: {}, commands: ["Art", "Edit", "Fakechat", "Gay", "Mistake", "Pair mention", "Pair msg Reply"] });
+if (!fs.existsSync(dbPath)) fs.writeJsonSync(dbPath, { 
+    commands: ["Art", "Edit", "Fakechat", "Gay", "Mistake", "Pair mention", "Pair msg Reply"] 
+});
 
-// Auto-migrate old database if needed
-let tempDb = fs.readJsonSync(dbPath);
-if (!tempDb.users) {
-    const migrated = { users: {}, commands: ["Art", "Edit", "Fakechat", "Gay", "Mistake", "Pair mention", "Pair msg Reply"] };
-    for (let key in tempDb) migrated.users[key] = tempDb[key];
-    fs.writeJsonSync(dbPath, migrated);
-}
-
-// VIP Packages Pricing
 const packages = {
     "1": { days: 1, price: 1.0 * M, label: "1M", name: "1 DAY VIP" },
     "2": { days: 2, price: 1.8 * M, label: "1.8M", name: "2 DAYS VIP" },
@@ -28,7 +26,7 @@ const packages = {
     "6": { days: 10, price: 8.5 * M, label: "8.5M", name: "10 DAYS VIP" },
     "7": { days: 15, price: 12.0 * M, label: "12.0M", name: "15 DAYS VIP" },
     "8": { days: 20, price: 16.0 * M, label: "16.0M", name: "20 DAYS VIP" },
-    "9": { days: 25, price: 20.0 * M, label: "20.0M", name: "25 DAYS VIP" },
+    "9": { days: 25, price: 20.0 * M, label: "25.0M", name: "25 DAYS VIP" },
     "10": { days: 30, price: 24.0 * M, label: "24.0M", name: "30 DAYS VIP" }
 };
 
@@ -40,18 +38,17 @@ function getUnicodeNumber(num) {
 module.exports = {
     config: {
         name: "vip",
-        version: "1.2",
-        author: "zisan",
+        version: "1.5",
+        author: "MahMUD",
         countDown: 5,
         role: 0,
-        shortDescription: "Advanced VIP System",
-        longDescription: "Buy VIP, check status, see locked commands and graphical store.",
+        shortDescription: "Advanced MongoDB VIP System",
         category: "system",
         guide: "{pn} | buy | info | cmd | list | add | remove"
     },
 
     onStart: async function ({ api, event, args, message, usersData }) {
-        const vipDb = fs.readJsonSync(dbPath);
+        const config = fs.readJsonSync(dbPath);
         const action = args[0]?.toLowerCase();
         const isAdmin = global.GoatBot.config.adminBot.includes(event.senderID);
         
@@ -61,92 +58,66 @@ module.exports = {
             senderName = sData.name;
         } catch(e) {}
 
-        // --- 0. MAIN MENU ---
         if (!action) {
             const menu = `╭─ [ 𝗦𝗛𝗜𝗭𝗨𝗞𝗔 𝗩𝗜𝗣 𝗠𝗘𝗡𝗨 ]\n╰‣ 𝐀𝐝𝐝\n╰‣ 𝐑𝐞𝐦𝐨𝐯𝐞\n╰‣ 𝐋𝐢𝐬𝐭\n╰‣ 𝐢𝐧𝐟𝐨\n╰‣ 𝐁𝐮𝐲\n╰‣ 𝐂𝐦𝐝\n\n• ${senderName}`;
             return message.reply(menu);
         }
 
-        // --- 1. SHOW VIP INFO & CARD ---
+        // --- 1. INFO ---
         if (action === "info") {
-            const isUserVip = isAdmin || (vipDb.users[event.senderID] && vipDb.users[event.senderID].expiry > Date.now());
+            const userVip = await Vip.findOne({ userID: event.senderID });
+            const isUserVip = isAdmin || (userVip && userVip.expiry > Date.now());
+            
             if (!isUserVip) return message.reply("❌ You are not a VIP member.\nBuy VIP using: /vip buy");
 
             message.reply("⌛ 𝗚𝗲𝗻𝗲𝗿𝗮𝘁𝗶𝗻𝗴 𝘆𝗼𝘂𝗿 𝗣𝗿𝗲𝗺𝗶𝘂𝗺 𝗩𝗜𝗣 𝗖𝗮𝗿𝗱...");
-            let expiryText = "𝗙𝗢𝗥𝗘𝗩𝗘𝗥";
-            if (!isAdmin && vipDb.users[event.senderID]) {
-                const date = new Date(vipDb.users[event.senderID].expiry);
-                expiryText = date.toLocaleDateString("en-GB") + " " + date.toLocaleTimeString("en-GB");
-            }
+            let expiryText = isAdmin ? "𝗙𝗢𝗥𝗘𝗩𝗘𝗥" : new Date(userVip.expiry).toLocaleString("en-GB");
 
-            try {
-                const imgPath = await createVipCard(event.senderID, senderName, expiryText);
-                return message.reply({
-                    body: ` 𝗦𝗛𝗜𝗭𝗨𝗞𝗔 𝗩𝗜𝗣 𝗠𝗘𝗠𝗕𝗘𝗥 \n𝗡𝗮𝗺𝗲: ${senderName}\n𝗩𝗮𝗹𝗶𝗱 𝗧𝗵𝗿𝘂: ${expiryText}`,
-                    attachment: fs.createReadStream(imgPath)
-                }, () => {
-                    if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
-                });
-            } catch (err) {
-                return message.reply("❌ Error generating VIP card.");
-            }
+            const imgPath = await createVipCard(event.senderID, senderName, expiryText);
+            return message.reply({
+                body: ` 𝗦𝗛𝗜𝗭𝗨𝗞𝗔 𝗩𝗜𝗣 𝗠𝗘𝗠Ｂ𝗘𝗥 \n𝗡𝗮𝗺𝗲: ${senderName}\n𝗩𝗮𝗹𝗶𝗱 𝗧𝗵𝗿𝘂: ${expiryText}`,
+                attachment: fs.createReadStream(imgPath)
+            }, () => fs.unlinkSync(imgPath));
         }
 
-        // --- 2. BUY VIP (WITH STORE IMAGE) ---
+        // --- 2. BUY ---
         if (action === "buy") {
             const packKey = args[1];
-            
-            let uData = {};
-            try {
-                uData = await usersData.get(event.senderID);
-            } catch (e) {
-                return message.reply("❌ Error fetching user data.");
-            }
+            const uData = await usersData.get(event.senderID) || {};
             const userMoney = uData.money || 0; 
             
             if (!packKey) {
                 const formatMoney = (userMoney / M).toFixed(1) + "M";
-                
-                // Text moved outside the image and made bold
-                const storeMsg = "🛒 **𝗢𝗽𝗲𝗻𝗶𝗻𝗴 𝗩𝗜𝗣 𝗦𝘁𝗼𝗿𝗲...**\n\n**Select a plan using '/vip buy <number>'**\n**Max Limit: 30 Days**";
-                
-                try {
-                    const storeImgPath = await createStoreImage(event.senderID, senderName, formatMoney);
-                    return message.reply({
-                        body: storeMsg,
-                        attachment: fs.createReadStream(storeImgPath)
-                    }, () => {
-                        if (fs.existsSync(storeImgPath)) fs.unlinkSync(storeImgPath);
-                    });
-                } catch(e) {
-                    return message.reply("❌ Error opening store: " + e.message);
-                }
+                const storeImgPath = await createStoreImage(event.senderID, senderName, formatMoney);
+                return message.reply({
+                    body: "🛒 **𝗢𝗽𝗲𝗻𝗶𝗻𝗴 𝗩𝗜𝗣 𝗦𝘁𝗼𝗿𝗲...**\nSelect a plan using '/vip buy <number>'",
+                    attachment: fs.createReadStream(storeImgPath)
+                }, () => fs.unlinkSync(storeImgPath));
             }
 
             const pack = packages[packKey];
-            if (!pack) return message.reply("❌ Invalid package number. Please check the store image.");
-
-            if (userMoney < pack.price) {
-                return message.reply(`❌ 𝗜𝗻𝘀𝘂𝗳𝗳𝗶𝗰𝗶𝗲𝗻𝘁 𝗙𝘂𝗻𝗱𝘀!\nYou need ${pack.label} coins for ${pack.name}. Your balance: ${(userMoney/M).toFixed(1)}M.`);
-            }
+            if (!pack) return message.reply("❌ Invalid package.");
+            if (userMoney < pack.price) return message.reply(`❌ You need ${pack.label} coins!`);
 
             await usersData.set(event.senderID, { money: userMoney - pack.price });
 
-            let currentExpiry = Date.now();
+            const userVip = await Vip.findOne({ userID: event.senderID });
             let start = Date.now();
-            if (vipDb.users[event.senderID] && vipDb.users[event.senderID].expiry > Date.now()) {
-                currentExpiry = vipDb.users[event.senderID].expiry;
-                start = vipDb.users[event.senderID].start || Date.now();
-            }
+            let currentExpiry = (userVip && userVip.expiry > Date.now()) ? userVip.expiry : Date.now();
             
             const newExpiry = currentExpiry + (pack.days * 24 * 60 * 60 * 1000);
-            vipDb.users[event.senderID] = { expiry: newExpiry, start: start };
-            fs.writeJsonSync(dbPath, vipDb);
+            
+            await Vip.findOneAndUpdate(
+                { userID: event.senderID },
+                { expiry: newExpiry, start: userVip?.start || start },
+                { upsert: true }
+            );
 
-            return message.reply(`✅ 𝗦𝘂𝗰𝗰𝗲𝘀𝘀𝗳𝘂𝗹𝗹𝘆 𝗽𝘂𝗿𝗰𝗵𝗮𝘀𝗲𝗱 ${pack.name}!\n${pack.label} coins deducted.\nType '/vip info' to see your card!`);
+            return message.reply(`✅ Successfully purchased ${pack.name}!`);
         }
 
-        // --- 3. SHOW LOCKED VIP COMMANDS LIST ---
+
+          // --- 3. SHOW LOCKED VIP COMMANDS LIST ---
         if (action === "cmd") {
             let cmdText = `𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐕𝐈𝐏 𝐜𝐨𝐦𝐦𝐚𝐧𝐝\n\n`;
             vipDb.commands.forEach((cmd, index) => {
@@ -154,102 +125,41 @@ module.exports = {
             });
             return message.reply(cmdText);
         }
-
-        // --- 4. SHOW VIP LIST ---
+        // --- 3. LIST ---
         if (action === "list") {
-            const userIDs = Object.keys(vipDb.users);
-            if (userIDs.length === 0) return message.reply("No VIP members found.");
+            const vips = await Vip.find({ expiry: { $gt: Date.now() } });
+            if (vips.length === 0) return message.reply("No VIP members found.");
             
-            let listText = `👑 𝗦𝗛𝗜𝗭𝗨𝗞𝗔 𝗩𝗜𝗣 𝗠𝗘𝗠𝗕𝗘𝗥𝗦\n\n`;
-            let count = 1;
-            
-            for (let uid of userIDs) {
-                if (vipDb.users[uid].expiry > Date.now()) {
-                    let name = "Unknown";
-                    try {
-                        const uData = await usersData.get(uid);
-                        name = uData.name;
-                    } catch(e) {}
-                    
-                    const startD = new Date(vipDb.users[uid].start || Date.now()).toLocaleDateString("en-GB");
-                    const endD = new Date(vipDb.users[uid].expiry).toLocaleDateString("en-GB");
-                    
-                    listText += `${count}. ${name}\n   Start: ${startD} | Exp: ${endD}\n`;
-                    count++;
-                }
+            let listText = `👑 𝗦𝗛𝗜𝗭𝗨𝗞𝗔 𝗩𝗜𝗣 𝗠𝗘𝗠Ｂ𝗘𝗥𝗦\n\n`;
+            for (let [index, v] of vips.entries()) {
+                const name = (await usersData.get(v.userID))?.name || "Unknown";
+                listText += `${index + 1}. ${name}\n   Exp: ${new Date(v.expiry).toLocaleDateString("en-GB")}\n`;
             }
             return message.reply(listText);
         }
 
-        // --- 5. ADMIN ADD (FIXED FOR REPLY AND MENTIONS) ---
+        // --- 4. ADMIN ADD ---
         if (action === "add" && isAdmin) {
-            const type = args[1]?.toLowerCase();
-            if (type === "cmd") {
-                const cmdName = args.slice(2).join(" ");
-                if (!cmdName) return message.reply("❌ Format: /vip add cmd <name>");
-                if (!vipDb.commands.includes(cmdName)) {
-                    vipDb.commands.push(cmdName);
-                    fs.writeJsonSync(dbPath, vipDb);
-                }
-                return message.reply(`✅ Added '${cmdName}' to VIP command list.`);
-            } else {
-                let mentionID = "";
-                let days = NaN;
+            let mentionID = event.type === "message_reply" ? event.messageReply.senderID : Object.keys(event.mentions)[0] || args[1];
+            let days = parseInt(args[args.length - 1]);
 
-                // Support for replying to a user's message
-                if (event.type === "message_reply") {
-                    mentionID = event.messageReply.senderID;
-                    days = parseInt(args[1]);
-                } 
-                // Support for mentioning a user
-                else if (Object.keys(event.mentions).length > 0) {
-                    mentionID = Object.keys(event.mentions)[0];
-                    days = parseInt(args[args.length - 1]); // Assumes format: /vip add @user 5
-                } 
-                // Support for direct UID input
-                else {
-                    mentionID = args[1];
-                    days = parseInt(args[2]);
-                }
+            if (!mentionID || isNaN(days)) return message.reply("❌ Format: /vip add @mention [days]");
 
-                if (!mentionID || isNaN(days)) return message.reply("❌ Format: /vip add @mention [days] OR Reply to user with /vip add [days]");
-
-                const newExpiry = Date.now() + (days * 24 * 60 * 60 * 1000);
-                vipDb.users[mentionID] = { expiry: newExpiry, start: Date.now() };
-                fs.writeJsonSync(dbPath, vipDb);
-                return message.reply(`✅ Added VIP to user for ${days} days.`);
-            }
+            const newExpiry = Date.now() + (days * 24 * 60 * 60 * 1000);
+            await Vip.findOneAndUpdate({ userID: mentionID }, { expiry: newExpiry, start: Date.now() }, { upsert: true });
+            return message.reply(`✅ Added VIP to user for ${days} days.`);
         }
 
-        // --- 6. ADMIN REMOVE ---
+        // --- 5. ADMIN REMOVE ---
         if (action === "remove" && isAdmin) {
-            const type = args[1]?.toLowerCase();
-            if (type === "cmd") {
-                const cmdName = args.slice(2).join(" ");
-                if (!cmdName) return message.reply("❌ Format: /vip remove cmd <name>");
-                vipDb.commands = vipDb.commands.filter(c => c.toLowerCase() !== cmdName.toLowerCase());
-                fs.writeJsonSync(dbPath, vipDb);
-                return message.reply(`✅ Removed '${cmdName}' from VIP command list.`);
-            } else {
-                let mentionID = "";
-                
-                if (event.type === "message_reply") {
-                    mentionID = event.messageReply.senderID;
-                } else if (Object.keys(event.mentions).length > 0) {
-                    mentionID = Object.keys(event.mentions)[0];
-                } else {
-                    mentionID = args[1];
-                }
-
-                if (!mentionID || !vipDb.users[mentionID]) return message.reply("❌ User is not VIP or ID invalid.");
-
-                delete vipDb.users[mentionID];
-                fs.writeJsonSync(dbPath, vipDb);
-                return message.reply("✅ Removed user's VIP status.");
-            }
+            let mentionID = event.type === "message_reply" ? event.messageReply.senderID : Object.keys(event.mentions)[0] || args[1];
+            await Vip.findOneAndDelete({ userID: mentionID });
+            return message.reply("✅ Removed user's VIP status.");
         }
     }
 };
+
+// ... (এখানে তোমার আগের createStoreImage, createVipCard এবং roundRect ফাংশনগুলো আগের মতোই থাকবে) ...
 
 // --- HELPER: ROUNDED RECTANGLE ---
 function roundRect(ctx, x, y, width, height, radius) {
