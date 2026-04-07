@@ -49,6 +49,10 @@ module.exports = {
         // --- VIP CHECK START (onStart এর ঠিক শুরুতেই থাকবে) ---
         const vipDbPath = path.join(__dirname, "../../data/vip.json");
         const vipData = fs.existsSync(vipDbPath) ? fs.readJsonSync(vipDbPath) : {};
+        // Add this line to see what the bot is actually reading
+
+        console.log("Reading VIP Data:", vipData); 
+        console.log("Sender ID:", event.senderID);
 
         const isAdmin = global.GoatBot.config.adminBot.includes(event.senderID);
         const isVip = isAdmin || (vipData[event.senderID] && vipData[event.senderID].expiry > Date.now());
