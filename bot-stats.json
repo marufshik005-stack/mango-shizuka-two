@@ -1,8 +1,8 @@
 {
-  "totalThreads": 0,
-  "totalUsers": 0,
-  "isLoggedIn": false,
-  "timestamp": "2026-04-09T13:29:18.651Z",
+  "totalThreads": 9,
+  "totalUsers": 88,
+  "isLoggedIn": true,
+  "timestamp": "2026-04-09T13:40:31.633Z",
   "botReady": true,
-  "uptime": 91.707308199
+  "uptime": 91.697745445
 }

@@ -29,10 +29,22 @@
     },
     "dhbc": {
       "reward": 1000
+    },
+    "ads": {
+      "deltaNext": 5
+    },
+    "notice": {
+      "delayPerGroup": 300
+    },
+    "unsendTracker": {
+      "allow": true
     }
   },
   "envEvents": {
     "logsbot": {
+      "allow": true
+    },
+    "unsendTracker": {
       "allow": true
     }
   }

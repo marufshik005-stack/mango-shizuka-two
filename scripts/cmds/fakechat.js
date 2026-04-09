@@ -44,16 +44,10 @@ module.exports = {
         },
 
         onStart: async function ({ api, event, message, args, usersData, getLang }) {
-                  // --- VIP CHECK START (onStart এর ঠিক শুরুতেই থাকবে) ---
-                const vipDbPath = path.join(__dirname, "../../data/vip.json");
-                const vipData = fs.existsSync(vipDbPath) ? fs.readJsonSync(vipDbPath) : {};
-
-                const isAdmin = global.GoatBot.config.adminBot.includes(event.senderID);
-                const isVip = isAdmin || (vipData[event.senderID] && vipData[event.senderID].expiry > Date.now());
-
-                if (!isVip) {
-                return message.reply("👑 𝗩𝗜𝗣 𝗢𝗡𝗟𝗬!\nThis is a premium feature.\nType: /vip buy");
-                }
+                // --- VIP CHECK (MongoDB) ---
+                const { checkVip } = require("../../database/controller/vipCheck");
+                const isVip = await checkVip(event.senderID);
+                if (!isVip) return message.reply("👑 𝗩𝗜𝗣 𝗢𝗡𝗟𝗬!\nThis is a premium feature.\nType: /vip buy");
                 // --- VIP CHECK END ---
                 const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68);
                 if (this.config.author !== authorName) {
