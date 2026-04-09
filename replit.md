@@ -106,3 +106,21 @@ The application follows a modular architecture with clear separation of concerns
 - **Uptime Services**: Integration with UptimeRobot or Better Stack for monitoring
 - **Replit/Glitch**: Cloud hosting platform compatibility
 - **Telegram Bot API**: Alternative notification channel
+
+# Replit Environment Setup
+
+## Workflow
+- **Workflow**: "Start application" — runs `node index.js`
+- **Port**: 5000 (set via `PORT` environment variable)
+- **Output Type**: webview
+- **Deployment Target**: vm (always-running bot)
+
+## Key Configuration
+- Dashboard port is controlled by `PORT` env var (set to 5000)
+- The server binds to `0.0.0.0:5000` for Replit proxy compatibility
+- System dependencies installed: `libuuid`, `cairo`, `pango`, `libjpeg`, `giflib`, `librsvg`, `pixman` (for canvas module)
+
+## Bot Setup
+- Facebook credentials (cookie/email+password) must be configured in `account.txt` or `config.json` for the bot to connect
+- MongoDB URI is pre-configured in `config.json`
+- Dashboard is accessible at port 5000 and shows "System Online" even without Facebook credentials
