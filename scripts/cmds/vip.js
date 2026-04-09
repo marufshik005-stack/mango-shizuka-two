@@ -48,7 +48,7 @@ function daysLeft(expiry) {
 module.exports = {
     config: {
         name: "vip",
-        version: "2.0",
+        version: "2.1",
         author: "MahMUD",
         countDown: 5,
         role: 0,
@@ -259,7 +259,7 @@ module.exports = {
 };
 
 // ─── HELPER: Rounded Rectangle ───────────────────────────────────────────────
-function roundRect(ctx, x, y, width, height, radius) {
+function roundRect(ctx, x, y, width, height, radius, fill = true, stroke = false) {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
     ctx.lineTo(x + width - radius, y);
@@ -271,214 +271,382 @@ function roundRect(ctx, x, y, width, height, radius) {
     ctx.lineTo(x, y + radius);
     ctx.quadraticCurveTo(x, y, x + radius, y);
     ctx.closePath();
-    ctx.fill();
-    if (ctx.lineWidth > 0) ctx.stroke();
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
 }
 
-// ─── HELPER: Honeycomb Texture ────────────────────────────────────────────────
-function drawHoneycombBackground(ctx, width, height) {
-    const r = 18;
-    const w = Math.sqrt(3) * r;
-    const h = 2 * r;
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = "rgba(255,255,255,0.025)";
-    for (let y = 0, row = 0; y < height + h; y += h * 0.75, row++) {
-        for (let x = 0; x < width + w; x += w) {
-            const offset = (row % 2 === 1) ? w / 2 : 0;
+// ─── HELPER: Draw decorative petal/circle clusters ───────────────────────────
+function drawPetalCluster(ctx, cx, cy, r, count, color) {
+    ctx.fillStyle = color;
+    for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 / count) * i;
+        const px = cx + Math.cos(angle) * r * 0.55;
+        const py = cy + Math.sin(angle) * r * 0.55;
+        ctx.beginPath();
+        ctx.ellipse(px, py, r * 0.38, r * 0.22, angle, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+// ─── HELPER: Soft grid/dot texture ───────────────────────────────────────────
+function drawDotTexture(ctx, width, height) {
+    ctx.fillStyle = "rgba(255,255,255,0.28)";
+    const spacing = 22;
+    for (let y = spacing; y < height; y += spacing) {
+        for (let x = spacing; x < width; x += spacing) {
             ctx.beginPath();
-            for (let i = 0; i < 6; i++) {
-                const angle = (Math.PI / 3) * i - (Math.PI / 6);
-                const hx = (x + offset) + r * Math.cos(angle);
-                const hy = y + r * Math.sin(angle);
-                if (i === 0) ctx.moveTo(hx, hy); else ctx.lineTo(hx, hy);
-            }
-            ctx.closePath();
-            ctx.stroke();
+            ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+            ctx.fill();
         }
     }
 }
 
-// ─── STORE IMAGE ──────────────────────────────────────────────────────────────
+// ─── STORE IMAGE — LIGHT PINK THEME ──────────────────────────────────────────
 async function createStoreImage(uid, name, balance) {
-    const canvas = createCanvas(800, 1000);
+    const W = 800, H = 1020;
+    const canvas = createCanvas(W, H);
     const ctx = canvas.getContext("2d");
 
-    const bgGradient = ctx.createLinearGradient(0, 0, 0, 1000);
-    bgGradient.addColorStop(0, "#0b0c10");
-    bgGradient.addColorStop(1, "#1f2833");
-    ctx.fillStyle = bgGradient;
-    ctx.fillRect(0, 0, 800, 1000);
-    drawHoneycombBackground(ctx, 800, 1000);
+    // ── Background: soft pink-to-lavender gradient ──
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0,   "#FFF0F5");
+    bg.addColorStop(0.45,"#FFD6E7");
+    bg.addColorStop(0.8, "#F9C2D8");
+    bg.addColorStop(1,   "#F0AACC");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
 
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 45px Arial";
-    ctx.fillText(`Hello, ${name} ✨`, 50, 80);
+    drawDotTexture(ctx, W, H);
 
-    ctx.fillStyle = "rgba(25,25,30,0.7)";
-    ctx.strokeStyle = "rgba(213,160,58,0.3)";
-    ctx.lineWidth = 2;
-    roundRect(ctx, 50, 130, 700, 140, 20);
+    // ── Decorative petal clusters ──
+    drawPetalCluster(ctx, 760, 35, 55, 6, "rgba(255,160,195,0.30)");
+    drawPetalCluster(ctx, 40,  980, 55, 6, "rgba(255,160,195,0.25)");
+    drawPetalCluster(ctx, 760, 980, 40, 5, "rgba(230,130,175,0.20)");
+
+    // ── Header banner ──
+    const headerGrad = ctx.createLinearGradient(0, 0, W, 0);
+    headerGrad.addColorStop(0,   "#E91E63");
+    headerGrad.addColorStop(0.5, "#F06292");
+    headerGrad.addColorStop(1,   "#E91E63");
+    ctx.fillStyle = headerGrad;
+    ctx.shadowColor = "rgba(233,30,99,0.4)";
+    ctx.shadowBlur = 18;
+    roundRect(ctx, 0, 0, W, 115, 0);
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    roundRect(ctx, 0, 0, W, 58, 0);
+
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 44px Arial";
+    ctx.textAlign = "center";
+    ctx.shadowColor = "rgba(0,0,0,0.25)";
+    ctx.shadowBlur = 6;
+    ctx.fillText("🌸  SHIZUKA VIP STORE  🌸", W / 2, 72);
+    ctx.shadowBlur = 0;
+    ctx.textAlign = "left";
+
+    // ── User profile card ──
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    ctx.strokeStyle = "#F48FB1";
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = "rgba(244,143,177,0.35)";
+    ctx.shadowBlur = 14;
+    roundRect(ctx, 40, 135, W - 80, 120, 20, true, true);
+    ctx.shadowBlur = 0;
 
     try {
         const avatarUrl = `https://graph.facebook.com/${uid}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
         const avatar = await loadImage(avatarUrl);
         ctx.save();
         ctx.beginPath();
-        ctx.arc(120, 200, 50, 0, Math.PI * 2);
+        ctx.arc(115, 195, 46, 0, Math.PI * 2);
         ctx.closePath();
         ctx.clip();
-        ctx.drawImage(avatar, 70, 150, 100, 100);
+        ctx.drawImage(avatar, 69, 149, 92, 92);
         ctx.restore();
+        const ring = ctx.createLinearGradient(69, 149, 161, 241);
+        ring.addColorStop(0, "#F48FB1");
+        ring.addColorStop(0.5, "#E91E63");
+        ring.addColorStop(1, "#F06292");
         ctx.beginPath();
-        ctx.arc(120, 200, 50, 0, Math.PI * 2);
-        ctx.strokeStyle = "#FBEA9D";
-        ctx.lineWidth = 3;
+        ctx.arc(115, 195, 46, 0, Math.PI * 2);
+        ctx.strokeStyle = ring;
+        ctx.lineWidth = 3.5;
         ctx.stroke();
     } catch (e) {}
 
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 32px Arial";
-    ctx.fillText(name, 200, 190);
-    ctx.fillStyle = "#c5a059";
-    ctx.font = "24px Arial";
-    ctx.fillText(`Available Balance: ${balance}`, 200, 230);
-
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#880E4F";
     ctx.font = "bold 28px Arial";
-    ctx.fillText("VIP PREMIUM PACKAGES", 50, 330);
+    ctx.fillText(name, 180, 183);
+    ctx.fillStyle = "#E91E63";
+    ctx.font = "22px Arial";
+    ctx.fillText(`💰 Balance: ${balance}`, 180, 218);
+    ctx.fillStyle = "#AD1457";
+    ctx.font = "16px Arial";
+    ctx.fillText("Select a package below and type: /vip buy <number>", 180, 246);
 
-    let startX = 50;
-    let startY = 370;
+    // ── Section header ──
+    const secGrad = ctx.createLinearGradient(40, 0, W - 40, 0);
+    secGrad.addColorStop(0, "#F8BBD9");
+    secGrad.addColorStop(1, "#FCE4EC");
+    ctx.fillStyle = secGrad;
+    ctx.strokeStyle = "#F48FB1";
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, 40, 278, W - 80, 42, 10, true, true);
+
+    ctx.fillStyle = "#880E4F";
+    ctx.font = "bold 20px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("✨  VIP PREMIUM PACKAGES  ✨", W / 2, 305);
+    ctx.textAlign = "left";
+
+    // ── Package cards ──
+    const cardW = 340, cardH = 108;
+    const col1X = 40, col2X = 420;
+    let rowY = 340;
 
     for (let i = 1; i <= 10; i++) {
         const pack = packages[i.toString()];
-        const cardGrad = ctx.createLinearGradient(startX, startY, startX, startY + 100);
-        cardGrad.addColorStop(0, "rgba(35,35,45,0.95)");
-        cardGrad.addColorStop(1, "rgba(20,20,26,0.95)");
+        const cardX = (i % 2 !== 0) ? col1X : col2X;
 
-        ctx.fillStyle = cardGrad;
-        ctx.strokeStyle = "rgba(213,160,58,0.25)";
-        ctx.lineWidth = 1;
-        roundRect(ctx, startX, startY, 330, 100, 12);
+        // Card shadow + background
+        ctx.shadowColor = "rgba(233,30,99,0.15)";
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 3;
 
-        ctx.fillStyle = "rgba(213,160,58,0.15)";
-        roundRect(ctx, startX + 15, startY + 25, 50, 50, 10);
-        ctx.fillStyle = "#FBEA9D";
-        ctx.font = "bold 24px Arial";
+        const cGrad = ctx.createLinearGradient(cardX, rowY, cardX, rowY + cardH);
+        cGrad.addColorStop(0, "rgba(255,255,255,0.90)");
+        cGrad.addColorStop(1, "rgba(252,225,238,0.88)");
+        ctx.fillStyle = cGrad;
+        ctx.strokeStyle = "#F48FB1";
+        ctx.lineWidth = 2;
+        roundRect(ctx, cardX, rowY, cardW, cardH, 14, true, true);
+        ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+
+        // Number badge
+        const badgeGrad = ctx.createLinearGradient(cardX + 14, rowY + 22, cardX + 14, rowY + 80);
+        badgeGrad.addColorStop(0, "#F06292");
+        badgeGrad.addColorStop(1, "#E91E63");
+        ctx.fillStyle = badgeGrad;
+        ctx.strokeStyle = "rgba(255,255,255,0.7)";
+        ctx.lineWidth = 2;
+        roundRect(ctx, cardX + 14, rowY + 22, 52, 60, 10, true, true);
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 28px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(`${i}`, startX + 40, startY + 58);
+        ctx.shadowColor = "rgba(0,0,0,0.3)";
+        ctx.shadowBlur = 3;
+        ctx.fillText(`${i}`, cardX + 40, rowY + 60);
+        ctx.shadowBlur = 0;
         ctx.textAlign = "left";
 
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 22px Arial";
-        ctx.fillText(pack.name, startX + 85, startY + 45);
-        ctx.fillStyle = "#c5a059";
-        ctx.font = "bold 18px Arial";
-        ctx.fillText(`Cost: ${pack.label}`, startX + 85, startY + 75);
+        // Package name
+        ctx.fillStyle = "#880E4F";
+        ctx.font = "bold 21px Arial";
+        ctx.fillText(pack.name, cardX + 82, rowY + 48);
 
-        if (i % 2 !== 0) { startX = 420; }
-        else { startX = 50; startY += 120; }
+        // Separator line
+        ctx.strokeStyle = "rgba(244,143,177,0.5)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cardX + 82, rowY + 60);
+        ctx.lineTo(cardX + cardW - 16, rowY + 60);
+        ctx.stroke();
+
+        // Price and days
+        ctx.fillStyle = "#E91E63";
+        ctx.font = "bold 17px Arial";
+        ctx.fillText(`💎 Cost: ${pack.label}`, cardX + 82, rowY + 82);
+        ctx.fillStyle = "#AD1457";
+        ctx.font = "16px Arial";
+        ctx.fillText(`📅 ${pack.days} day${pack.days > 1 ? "s" : ""}`, cardX + 210, rowY + 82);
+
+        if (i % 2 === 0) rowY += cardH + 14;
     }
+
+    // ── Footer ──
+    const footGrad = ctx.createLinearGradient(0, H - 55, W, H);
+    footGrad.addColorStop(0, "#E91E63");
+    footGrad.addColorStop(1, "#F06292");
+    ctx.fillStyle = footGrad;
+    roundRect(ctx, 0, H - 52, W, 52, 0);
+
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    ctx.font = "18px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("🌸  Shizuka Bot · Exclusive VIP Benefits  🌸", W / 2, H - 18);
+    ctx.textAlign = "left";
 
     const tempPath = path.join(dataFolder, `vip_store_${uid}.png`);
     fs.writeFileSync(tempPath, canvas.toBuffer("image/png"));
     return tempPath;
 }
 
-// ─── VIP CARD ─────────────────────────────────────────────────────────────────
+// ─── VIP CARD — LIGHT PINK THEME ─────────────────────────────────────────────
 async function createVipCard(uid, name, expiry) {
-    const canvas = createCanvas(800, 450);
+    const W = 820, H = 460;
+    const canvas = createCanvas(W, H);
     const ctx = canvas.getContext("2d");
 
-    ctx.fillStyle = "#111115";
-    ctx.fillRect(0, 0, 800, 450);
-    drawHoneycombBackground(ctx, 800, 450);
+    // ── Background gradient ──
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0,   "#FFF0F5");
+    bg.addColorStop(0.4, "#FFD6E7");
+    bg.addColorStop(0.75,"#FFADD2");
+    bg.addColorStop(1,   "#F9A8C4");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
 
-    const goldGradient = ctx.createLinearGradient(0, 0, 800, 450);
-    goldGradient.addColorStop(0, "#FBEA9D");
-    goldGradient.addColorStop(0.3, "#D5A03A");
-    goldGradient.addColorStop(0.5, "#F7D070");
-    goldGradient.addColorStop(0.7, "#B37B22");
-    goldGradient.addColorStop(1, "#FBEA9D");
+    drawDotTexture(ctx, W, H);
 
-    ctx.shadowColor = "rgba(0,0,0,0.6)";
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetX = 3;
-    ctx.shadowOffsetY = 3;
-    ctx.strokeStyle = goldGradient;
-    ctx.lineWidth = 6;
-    ctx.strokeRect(15, 15, 770, 420);
-    ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+    // ── Corner petal decorations ──
+    drawPetalCluster(ctx, 0,   0,   80, 5, "rgba(255,180,210,0.38)");
+    drawPetalCluster(ctx, W,   0,   80, 5, "rgba(255,180,210,0.38)");
+    drawPetalCluster(ctx, 0,   H,   70, 5, "rgba(255,160,195,0.28)");
+    drawPetalCluster(ctx, W,   H,   70, 5, "rgba(255,160,195,0.28)");
 
-    ctx.fillStyle = "#FFFFFF";
+    // ── Card border: rose-to-deep-pink gradient ──
+    const borderGrad = ctx.createLinearGradient(0, 0, W, H);
+    borderGrad.addColorStop(0,   "#F48FB1");
+    borderGrad.addColorStop(0.3, "#E91E63");
+    borderGrad.addColorStop(0.6, "#F06292");
+    borderGrad.addColorStop(1,   "#F48FB1");
+    ctx.strokeStyle = borderGrad;
+    ctx.lineWidth = 7;
+    ctx.shadowColor = "rgba(233,30,99,0.45)";
+    ctx.shadowBlur = 18;
+    roundRect(ctx, 12, 12, W - 24, H - 24, 22, false, true);
+    ctx.shadowBlur = 0;
+
+    // ── Inner faint white overlay for card feel ──
+    const innerGrad = ctx.createLinearGradient(0, 0, W, H * 0.5);
+    innerGrad.addColorStop(0, "rgba(255,255,255,0.32)");
+    innerGrad.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = innerGrad;
+    roundRect(ctx, 12, 12, W - 24, H - 24, 22);
+
+    // ── Bank name & tier ──
+    ctx.fillStyle = "#880E4F";
     ctx.font = "bold 32px Arial";
-    ctx.fillText("SHIZUKA BANK", 40, 70);
-    ctx.fillStyle = "#888888";
-    ctx.font = "16px Arial";
-    ctx.fillText("PREMIUM ELITE", 42, 95);
+    ctx.shadowColor = "rgba(255,255,255,0.8)";
+    ctx.shadowBlur = 6;
+    ctx.fillText("🌸 SHIZUKA BANK", 40, 68);
+    ctx.shadowBlur = 0;
 
+    const tierGrad = ctx.createLinearGradient(42, 80, 200, 80);
+    tierGrad.addColorStop(0, "#E91E63");
+    tierGrad.addColorStop(1, "#AD1457");
+    ctx.fillStyle = tierGrad;
+    ctx.font = "bold 15px Arial";
+    ctx.fillText("PREMIUM  ·  ELITE  ·  VIP", 44, 98);
+
+    // ── Avatar ──
     try {
         const avatarUrl = `https://graph.facebook.com/${uid}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
         const avatar = await loadImage(avatarUrl);
-        ctx.shadowColor = "rgba(0,0,0,0.9)";
-        ctx.shadowBlur = 15;
+
+        ctx.shadowColor = "rgba(233,30,99,0.5)";
+        ctx.shadowBlur = 16;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(700, 80, 50, 0, Math.PI * 2);
+        ctx.arc(718, 82, 56, 0, Math.PI * 2);
         ctx.closePath();
         ctx.clip();
-        ctx.drawImage(avatar, 650, 30, 100, 100);
+        ctx.drawImage(avatar, 662, 26, 112, 112);
         ctx.restore();
+        ctx.shadowBlur = 0;
+
+        const ring = ctx.createLinearGradient(662, 26, 774, 138);
+        ring.addColorStop(0,   "#F48FB1");
+        ring.addColorStop(0.4, "#E91E63");
+        ring.addColorStop(1,   "#FCE4EC");
         ctx.beginPath();
-        ctx.arc(700, 80, 50, 0, Math.PI * 2);
-        ctx.strokeStyle = goldGradient;
+        ctx.arc(718, 82, 56, 0, Math.PI * 2);
+        ctx.strokeStyle = ring;
         ctx.lineWidth = 4;
         ctx.stroke();
     } catch (e) {}
 
-    ctx.shadowBlur = 3; ctx.shadowColor = "rgba(0,0,0,0.5)";
-    ctx.fillStyle = goldGradient;
-    ctx.beginPath();
-    const [cx, cy, cw, ch, cr] = [40, 140, 70, 50, 8];
-    ctx.moveTo(cx + cr, cy);
-    ctx.lineTo(cx + cw - cr, cy); ctx.quadraticCurveTo(cx + cw, cy, cx + cw, cy + cr);
-    ctx.lineTo(cx + cw, cy + ch - cr); ctx.quadraticCurveTo(cx + cw, cy + ch, cx + cw - cr, cy + ch);
-    ctx.lineTo(cx + cr, cy + ch); ctx.quadraticCurveTo(cx, cy + ch, cx, cy + ch - cr);
-    ctx.lineTo(cx, cy + cr); ctx.quadraticCurveTo(cx, cy, cx + cr, cy);
-    ctx.fill();
-
-    ctx.shadowColor = "rgba(0,0,0,0.9)"; ctx.shadowBlur = 5;
-    ctx.fillStyle = "#E8E8E8";
-    ctx.font = "20px Arial";
-    ctx.fillText("MEMBER ID", 40, 240);
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 44px monospace";
-    const displayId = (uid + "000000000000").substring(0, 16).match(/.{1,4}/g).join("  ");
-    ctx.fillText(displayId, 40, 290);
-
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 26px Arial";
-    ctx.fillText(name.toUpperCase(), 40, 390);
-
-    ctx.fillStyle = "#888888";
-    ctx.font = "bold 16px Arial";
-    ctx.fillText("VALID THRU", 500, 365);
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 24px Arial";
-    ctx.fillText(expiry, 500, 395);
-
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "italic bold 35px Arial";
-    ctx.fillText("ELITE", 670, 395);
-
+    // ── Chip ──
+    const chipGrad = ctx.createLinearGradient(40, 145, 120, 200);
+    chipGrad.addColorStop(0, "#F8BBD9");
+    chipGrad.addColorStop(0.5, "#E91E63");
+    chipGrad.addColorStop(1, "#F48FB1");
+    ctx.fillStyle = chipGrad;
+    ctx.strokeStyle = "rgba(255,255,255,0.6)";
+    ctx.lineWidth = 1.5;
+    ctx.shadowColor = "rgba(233,30,99,0.3)";
+    ctx.shadowBlur = 8;
+    roundRect(ctx, 40, 145, 72, 52, 8, true, true);
     ctx.shadowBlur = 0;
-    const gloss = ctx.createLinearGradient(0, 0, 800, 450);
-    gloss.addColorStop(0, "rgba(255,255,255,0.15)");
-    gloss.addColorStop(0.4, "rgba(255,255,255,0.05)");
-    gloss.addColorStop(0.41, "rgba(255,255,255,0)");
+
+    // Chip lines
+    ctx.strokeStyle = "rgba(255,255,255,0.55)";
+    ctx.lineWidth = 1;
+    for (let lx = 48; lx <= 104; lx += 10) {
+        ctx.beginPath(); ctx.moveTo(lx, 145); ctx.lineTo(lx, 197); ctx.stroke();
+    }
+    for (let ly = 158; ly <= 185; ly += 13) {
+        ctx.beginPath(); ctx.moveTo(40, ly); ctx.lineTo(112, ly); ctx.stroke();
+    }
+
+    // ── Member ID label + number ──
+    ctx.fillStyle = "#AD1457";
+    ctx.font = "bold 14px Arial";
+    ctx.fillText("MEMBER ID", 40, 248);
+
+    const idGrad = ctx.createLinearGradient(40, 260, 500, 300);
+    idGrad.addColorStop(0, "#880E4F");
+    idGrad.addColorStop(0.5, "#E91E63");
+    idGrad.addColorStop(1, "#880E4F");
+    ctx.fillStyle = idGrad;
+    ctx.font = "bold 42px monospace";
+    ctx.shadowColor = "rgba(233,30,99,0.3)";
+    ctx.shadowBlur = 4;
+    const displayId = (uid + "0000000000000000").substring(0, 16).match(/.{1,4}/g).join("  ");
+    ctx.fillText(displayId, 40, 296);
+    ctx.shadowBlur = 0;
+
+    // ── Cardholder name ──
+    ctx.fillStyle = "#880E4F";
+    ctx.font = "bold 28px Arial";
+    ctx.shadowColor = "rgba(255,255,255,0.7)";
+    ctx.shadowBlur = 4;
+    ctx.fillText(name.toUpperCase(), 40, 400);
+    ctx.shadowBlur = 0;
+
+    // ── Valid thru ──
+    ctx.fillStyle = "#AD1457";
+    ctx.font = "bold 13px Arial";
+    ctx.fillText("VALID THRU", 500, 370);
+    ctx.fillStyle = "#880E4F";
+    ctx.font = "bold 21px Arial";
+    ctx.fillText(expiry, 500, 400);
+
+    // ── ELITE badge ──
+    const eliteGrad = ctx.createLinearGradient(655, 380, 810, 420);
+    eliteGrad.addColorStop(0, "#E91E63");
+    eliteGrad.addColorStop(1, "#F06292");
+    ctx.fillStyle = eliteGrad;
+    ctx.font = "italic bold 34px Arial";
+    ctx.shadowColor = "rgba(233,30,99,0.5)";
+    ctx.shadowBlur = 6;
+    ctx.fillText("ELITE", 660, 412);
+    ctx.shadowBlur = 0;
+
+    // ── Gloss overlay ──
+    const gloss = ctx.createLinearGradient(0, 0, W, H * 0.45);
+    gloss.addColorStop(0, "rgba(255,255,255,0.22)");
+    gloss.addColorStop(0.38, "rgba(255,255,255,0.07)");
+    gloss.addColorStop(0.39, "rgba(255,255,255,0)");
     gloss.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = gloss;
-    ctx.fillRect(15, 15, 770, 420);
+    roundRect(ctx, 12, 12, W - 24, H - 24, 22);
 
     const tempPath = path.join(dataFolder, `vip_card_${uid}.png`);
     fs.writeFileSync(tempPath, canvas.toBuffer("image/png"));
