@@ -1,7 +1,7 @@
 [
   {
     "domain": ".facebook.com",
-    "expirationDate": 1810356320.238557,
+    "expirationDate": 1810364274.091649,
     "hostOnly": false,
     "httpOnly": true,
     "name": "sb",
@@ -78,7 +78,7 @@
   },
   {
     "domain": ".facebook.com",
-    "expirationDate": 1807332322.899515,
+    "expirationDate": 1807340277.49212,
     "hostOnly": false,
     "httpOnly": false,
     "name": "c_user",
@@ -91,7 +91,7 @@
   },
   {
     "domain": ".facebook.com",
-    "expirationDate": 1783572322.899738,
+    "expirationDate": 1783580277.492324,
     "hostOnly": false,
     "httpOnly": true,
     "name": "fr",
@@ -100,11 +100,11 @@
     "secure": true,
     "session": false,
     "storeId": "0",
-    "value": "1lqHVYlwDvuillzkk.AWdofTOm2Bst-LkVP0wkkpurPgUM3Wzq8glvoKXv_Z9ouXXCNhs.Bp2IBj..AAA.0.0.Bp2IBj.AWcFBm0fepKa3Picye7hEOwPNhA"
+    "value": "1FwQWSdtvHdTWT5jd.AWdv-ikMGonem0fviDTAX_ixs9M3ISn2wX_VS_gdE0iv2sTyCqU.Bp2J91..AAA.0.0.Bp2J91.AWczT8OJW-jBwAC_uQYiQhtIy14"
   },
   {
     "domain": ".facebook.com",
-    "expirationDate": 1807332322.899904,
+    "expirationDate": 1807340277.49249,
     "hostOnly": false,
     "httpOnly": true,
     "name": "xs",
@@ -113,11 +113,11 @@
     "secure": true,
     "session": false,
     "storeId": "0",
-    "value": "17%3A0X-zIOL3-ubdLg%3A2%3A1775796318%3A-1%3A-1%3A%3AAcyw1s1c4ptw0fThXICqes3uPsGNOP-go5_D4YsgDg"
+    "value": "2%3Ad_2MIBNgsbZX2Q%3A2%3A1775804273%3A-1%3A-1%3A%3AAczG5QYlp3xk0MTlvvdhHE7DH2GUSbsryXZPzxCANg"
   },
   {
     "domain": ".facebook.com",
-    "expirationDate": 1776401128,
+    "expirationDate": 1776409081,
     "hostOnly": false,
     "httpOnly": false,
     "name": "wd",
@@ -126,18 +126,6 @@
     "secure": true,
     "session": false,
     "storeId": "0",
-    "value": "987x607"
-  },
-  {
-    "domain": ".facebook.com",
-    "hostOnly": false,
-    "httpOnly": false,
-    "name": "presence",
-    "path": "/",
-    "sameSite": "unspecified",
-    "secure": true,
-    "session": true,
-    "storeId": "0",
-    "value": "C%7B%22t3%22%3A%5B%5D%2C%22utc3%22%3A1775796328740%2C%22v%22%3A1%7D"
+    "value": "1365x607"
   }
 ]
