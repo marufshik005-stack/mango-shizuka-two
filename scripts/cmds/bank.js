@@ -344,8 +344,7 @@ module.exports = {
       case "b": {
         const bankBal = economyData.bankBalance;
 
-        // Visa card logic remains the same
-        const W = 900, H = 567;
+        const W = 960, H = 580;
         const canvas = createCanvas(W, H);
         const ctx = canvas.getContext("2d");
 
@@ -363,118 +362,237 @@ module.exports = {
           ctx.closePath();
         };
 
-        const gradients = [
-          ["#141414", "#292929", "#0a0a0a"], 
-          ["#30030c", "#5c0b1b", "#1a0105"], 
-          ["#0a1d33", "#13355c", "#05111f"], 
-          ["#041c10", "#0b3d22", "#020f09"], 
-          ["#4d0012", "#a6113b", "#29000a"], 
-          ["#050505", "#1c1c1c", "#000000"],
-          ["#424245", "#6c6c70", "#2b2b2d"],
-          ["#8a8a8a", "#b5b5b5", "#636363"],
-          ["#635d55", "#968e83", "#403b35"],
-          ["#24262b", "#474b54", "#15161a"],
-          ["#21201d", "#403d37", "#12110f"] 
+        const cardThemes = [
+          { a: "#0f0c29", b: "#302b63", c: "#24243e", accent: "#a78bfa", accentLight: "#c4b5fd" },
+          { a: "#1a0533", b: "#3b0764", c: "#0a0015", accent: "#e879f9", accentLight: "#f0abfc" },
+          { a: "#0c1445", b: "#1e3a8a", c: "#030712", accent: "#60a5fa", accentLight: "#93c5fd" },
+          { a: "#022c22", b: "#064e3b", c: "#010f0a", accent: "#34d399", accentLight: "#6ee7b7" },
+          { a: "#450a0a", b: "#7f1d1d", c: "#1c0303", accent: "#f87171", accentLight: "#fca5a5" },
+          { a: "#1c1917", b: "#44403c", c: "#0c0a09", accent: "#d6d3d1", accentLight: "#f5f5f4" },
+          { a: "#0c0a20", b: "#1e1b4b", c: "#050411", accent: "#818cf8", accentLight: "#a5b4fc" },
+          { a: "#0d1b2a", b: "#1b4332", c: "#050d14", accent: "#4ade80", accentLight: "#86efac" },
+          { a: "#111318", b: "#1e2330", c: "#090b0f", accent: "#94a3b8", accentLight: "#cbd5e1" },
+          { a: "#1a1612", b: "#2e2820", c: "#0d0b08", accent: "#c4a882", accentLight: "#e5d0b4" },
+          { a: "#141414", b: "#262626", c: "#080808", accent: "#a0a0a0", accentLight: "#d4d4d4" },
+          { a: "#16181c", b: "#2c3140", c: "#08090d", accent: "#8b9ab5", accentLight: "#b8c4d8" },
+          { a: "#1b1710", b: "#332e22", c: "#0e0c08", accent: "#b8a878", accentLight: "#d8cc9e" },
         ];
-        
-        const randomGrad = gradients[Math.floor(Math.random() * gradients.length)];
-        const grad = ctx.createLinearGradient(0, 0, W, H);
-        grad.addColorStop(0,   randomGrad[0]);
-        grad.addColorStop(0.5, randomGrad[1]);
-        grad.addColorStop(1,   randomGrad[2]);
-        ctx.fillStyle = grad;
-        roundRect(0, 0, W, H, 30);
-        ctx.fill();
 
-        const metallicGlow = ctx.createLinearGradient(0, 0, W, H);
-        metallicGlow.addColorStop(0, "rgba(255,255,255,0.18)");
-        metallicGlow.addColorStop(0.3, "rgba(255,255,255,0.0)");
-        metallicGlow.addColorStop(0.6, "rgba(255,255,255,0.0)");
-        metallicGlow.addColorStop(1, "rgba(0,0,0,0.5)");
-        ctx.fillStyle = metallicGlow;
-        roundRect(0, 0, W, H, 30);
+        const theme = cardThemes[Math.floor(Math.random() * cardThemes.length)];
+
+        const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+        bgGrad.addColorStop(0,    theme.a);
+        bgGrad.addColorStop(0.45, theme.b);
+        bgGrad.addColorStop(1,    theme.c);
+        ctx.fillStyle = bgGrad;
+        roundRect(0, 0, W, H, 36);
         ctx.fill();
 
         ctx.save();
-        for (let i = 0; i < 8; i++) {
-          ctx.strokeStyle = `rgba(255,255,255,${(0.02 + i * 0.005).toFixed(3)})`;
-          ctx.lineWidth = 1.5;
+        const glow1 = ctx.createRadialGradient(W * 0.78, H * 0.18, 0, W * 0.78, H * 0.18, W * 0.6);
+        glow1.addColorStop(0, `${theme.accent}32`);
+        glow1.addColorStop(0.55, `${theme.accent}0a`);
+        glow1.addColorStop(1, "transparent");
+        ctx.fillStyle = glow1;
+        roundRect(0, 0, W, H, 36);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        const glow2 = ctx.createRadialGradient(W * 0.12, H * 0.88, 0, W * 0.12, H * 0.88, W * 0.45);
+        glow2.addColorStop(0, `${theme.accent}22`);
+        glow2.addColorStop(1, "transparent");
+        ctx.fillStyle = glow2;
+        roundRect(0, 0, W, H, 36);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        const glow3 = ctx.createRadialGradient(W * 0.48, H * 0.5, 0, W * 0.48, H * 0.5, W * 0.38);
+        glow3.addColorStop(0, `${theme.accent}0d`);
+        glow3.addColorStop(1, "transparent");
+        ctx.fillStyle = glow3;
+        roundRect(0, 0, W, H, 36);
+        ctx.fill();
+        ctx.restore();
+
+        const shineGrad = ctx.createLinearGradient(0, 0, W, H);
+        shineGrad.addColorStop(0,   "rgba(255,255,255,0.10)");
+        shineGrad.addColorStop(0.4, "rgba(255,255,255,0.02)");
+        shineGrad.addColorStop(1,   "rgba(0,0,0,0.05)");
+        ctx.fillStyle = shineGrad;
+        roundRect(0, 0, W, H, 36);
+        ctx.fill();
+
+        // Honeycomb hexagon texture
+        ctx.save();
+        ctx.beginPath();
+        roundRect(0, 0, W, H, 36);
+        ctx.clip();
+
+        const hexR    = 22;
+        const hexW    = Math.sqrt(3) * hexR;
+        const hexRowH = 1.5 * hexR;
+        const focalX  = W * 0.62, focalY = H * 0.32;
+        const maxD    = Math.sqrt(W * W + H * H) * 0.60;
+
+        const drawHex = (cx, cy) => {
           ctx.beginPath();
-          ctx.arc(W + 100, H / 2, 250 + i * 50, Math.PI * 0.6, Math.PI * 1.4);
+          for (let i = 0; i < 6; i++) {
+            const ang = Math.PI / 6 + (Math.PI / 3) * i;
+            const vx = cx + hexR * Math.cos(ang);
+            const vy = cy + hexR * Math.sin(ang);
+            if (i === 0) ctx.moveTo(vx, vy);
+            else         ctx.lineTo(vx, vy);
+          }
+          ctx.closePath();
+        };
+
+        const totalRows = Math.ceil(H / hexRowH) + 3;
+        const totalCols = Math.ceil(W / hexW) + 3;
+
+        for (let row = -1; row < totalRows; row++) {
+          for (let col = -1; col < totalCols; col++) {
+            const cx = col * hexW + (row % 2 === 0 ? 0 : hexW / 2);
+            const cy = row * hexRowH;
+            const dist = Math.sqrt((cx - focalX) ** 2 + (cy - focalY) ** 2);
+            const t = Math.max(0, 1 - dist / maxD);
+
+            drawHex(cx, cy);
+            ctx.fillStyle = `rgba(255,255,255,${(0.014 + t * 0.038).toFixed(4)})`;
+            ctx.fill();
+
+            drawHex(cx, cy);
+            ctx.strokeStyle = `rgba(255,255,255,${(0.07 + t * 0.14).toFixed(3)})`;
+            ctx.lineWidth = 0.9;
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+
+        ctx.save();
+        ctx.strokeStyle = `${theme.accent}60`;
+        ctx.lineWidth = 1.5;
+        roundRect(0, 0, W, H, 36);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(255,255,255,0.06)";
+        ctx.lineWidth = 3;
+        roundRect(3, 3, W - 6, H - 6, 34);
+        ctx.stroke();
+        ctx.restore();
+
+        const holderName = (await usersData.getName(senderID) || "CARD HOLDER").toUpperCase();
+        const now = new Date();
+        const expMM = String(now.getMonth() + 1).padStart(2, "0");
+        const expYY = String(now.getFullYear() + 4).slice(-2);
+
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 26px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("SHIZUKA BANK", 52, 62);
+        ctx.restore();
+
+        ctx.fillStyle = theme.accentLight;
+        ctx.font = "11px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("PREMIUM MEMBER", 52, 82);
+
+        ctx.save();
+        ctx.shadowColor = theme.accent;
+        ctx.shadowBlur = 18;
+        ctx.shadowOffsetY = 2;
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold italic 62px serif";
+        ctx.textAlign = "right";
+        ctx.fillText("VISA", W - 50, 76);
+        ctx.restore();
+
+        const chipGrad = ctx.createLinearGradient(52, 130, 52 + 78, 130 + 56);
+        chipGrad.addColorStop(0, "#f5e27a");
+        chipGrad.addColorStop(0.3, "#d4af37");
+        chipGrad.addColorStop(0.65, "#c8970f");
+        chipGrad.addColorStop(1, "#f0d060");
+        const chipX = 52, chipY = 130;
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 4;
+        ctx.fillStyle = chipGrad;
+        roundRect(chipX, chipY, 78, 56, 9);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.strokeStyle = "#9a7010";
+        ctx.lineWidth = 1.2;
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(chipX + 24, chipY);       ctx.lineTo(chipX + 24, chipY + 56);
+        ctx.moveTo(chipX + 54, chipY);       ctx.lineTo(chipX + 54, chipY + 56);
+        ctx.moveTo(chipX,      chipY + 18);  ctx.lineTo(chipX + 24, chipY + 18);
+        ctx.moveTo(chipX + 54, chipY + 18);  ctx.lineTo(chipX + 78, chipY + 18);
+        ctx.moveTo(chipX,      chipY + 38);  ctx.lineTo(chipX + 24, chipY + 38);
+        ctx.moveTo(chipX + 54, chipY + 38);  ctx.lineTo(chipX + 78, chipY + 38);
+        ctx.stroke();
+        ctx.restore();
+
+        const chipShine = ctx.createLinearGradient(chipX, chipY, chipX + 78, chipY + 30);
+        chipShine.addColorStop(0, "rgba(255,255,255,0.35)");
+        chipShine.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = chipShine;
+        roundRect(chipX, chipY, 78, 28, 9);
+        ctx.fill();
+
+        const nfcX = chipX + 110, nfcY = chipY + 28;
+        ctx.save();
+        ctx.strokeStyle = "rgba(255,255,255,0.85)";
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        for (let i = 1; i <= 4; i++) {
+          ctx.globalAlpha = 0.35 + i * 0.16;
+          ctx.beginPath();
+          ctx.arc(nfcX - 12, nfcY, 7 + i * 7, -Math.PI / 4, Math.PI / 4);
           ctx.stroke();
         }
         ctx.restore();
 
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 32px Arial";
-        ctx.textAlign = "left";
-        ctx.fillText("SHI BANK LTD.", 50, 60);
-
-        ctx.shadowColor = "rgba(0,0,0,0.3)";
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetY = 2;
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold italic 56px serif";
-        ctx.textAlign = "right";
-        ctx.fillText("VISA", W - 50, 70);
-        ctx.shadowColor = "transparent"; 
-        ctx.textAlign = "left";
-
-        const chipX = 50, chipY = 140;
-        ctx.fillStyle = "#d4af37"; 
-        roundRect(chipX, chipY, 70, 50, 8);
-        ctx.fill();
-        ctx.strokeStyle = "#aa8222"; 
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(chipX + 22, chipY); ctx.lineTo(chipX + 22, chipY + 50);
-        ctx.moveTo(chipX + 48, chipY); ctx.lineTo(chipX + 48, chipY + 50);
-        ctx.moveTo(chipX, chipY + 16); ctx.lineTo(chipX + 22, chipY + 16);
-        ctx.moveTo(chipX + 48, chipY + 16); ctx.lineTo(chipX + 70, chipY + 16);
-        ctx.moveTo(chipX, chipY + 34); ctx.lineTo(chipX + 22, chipY + 34);
-        ctx.moveTo(chipX + 48, chipY + 34); ctx.lineTo(chipX + 70, chipY + 34);
-        ctx.stroke();
-
-        const cxIcon = chipX + 110, cyIcon = chipY + 25;
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-        ctx.lineWidth = 3.5;
-        ctx.lineCap = "round";
-        for (let i = 1; i <= 4; i++) {
-          ctx.beginPath();
-          ctx.arc(cxIcon - 15, cyIcon, 8 + i * 6, -Math.PI/4.5, Math.PI/4.5);
-          ctx.stroke();
-        }
-
-        const avatarCX = W - 110, avatarCY = 180, avatarCR = 55;
+        const avatarCX = W - 98, avatarCY = 172, avatarCR = 58;
         try {
           const avatarUrl = await usersData.getAvatarUrl(senderID);
           const avatar = await loadImage(avatarUrl);
           ctx.save();
-          ctx.shadowColor = "rgba(0,0,0,0.5)";
-          ctx.shadowBlur = 10;
-          ctx.shadowOffsetY = 5;
           ctx.beginPath();
           ctx.arc(avatarCX, avatarCY, avatarCR, 0, Math.PI * 2);
           ctx.closePath();
-          ctx.fill(); 
           ctx.clip();
           ctx.drawImage(avatar, avatarCX - avatarCR, avatarCY - avatarCR, avatarCR * 2, avatarCR * 2);
           ctx.restore();
         } catch (e) {
-          ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+          ctx.fillStyle = "rgba(255,255,255,0.12)";
           ctx.beginPath();
           ctx.arc(avatarCX, avatarCY, avatarCR, 0, Math.PI * 2);
           ctx.fill();
         }
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)"; 
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(avatarCX, avatarCY, avatarCR + 2, 0, Math.PI * 2);
-        ctx.stroke();
 
-        ctx.fillStyle = "rgba(255,255,255,0.7)";
-        ctx.font = "600 16px Arial";
-        ctx.fillText("AVAILABLE BALANCE", 50, 260);
+        ctx.save();
+        const ringGrad = ctx.createLinearGradient(avatarCX - avatarCR, avatarCY - avatarCR, avatarCX + avatarCR, avatarCY + avatarCR);
+        ringGrad.addColorStop(0, theme.accentLight);
+        ringGrad.addColorStop(0.5, theme.accent);
+        ringGrad.addColorStop(1, theme.accentLight);
+        ctx.strokeStyle = ringGrad;
+        ctx.lineWidth = 3.5;
+        ctx.shadowColor = theme.accent;
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(avatarCX, avatarCY, avatarCR + 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
 
         const fmtBal = (num) => {
           const units = ["", "K", "M", "B", "T", "Q"];
@@ -482,39 +600,86 @@ module.exports = {
           while (n >= 1000 && unit < units.length - 1) { n /= 1000; unit++; }
           return `${parseFloat(n.toFixed(2))}${units[unit]}`;
         };
-        
-        ctx.shadowColor = "rgba(0,0,0,0.4)";
-        ctx.shadowBlur = 8;
-        ctx.shadowOffsetY = 4;
+
+        ctx.fillStyle = `${theme.accentLight}cc`;
+        ctx.font = "600 13px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("AVAILABLE BALANCE", 52, 268);
+
+        ctx.save();
+        ctx.shadowColor = theme.accent;
+        ctx.shadowBlur = 24;
+        ctx.shadowOffsetY = 3;
         ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 64px Arial";
-        ctx.fillText(`$${fmtBal(bankBal)}`, 46, 335);
+        ctx.font = "bold 68px Arial";
+        ctx.fillText(`$${fmtBal(bankBal)}`, 48, 348);
+        ctx.restore();
 
         const uid16 = String(senderID).replace(/\D/g, "").padStart(16, "0").slice(-16);
         const cardNum = `${uid16.slice(0,4)}  ${uid16.slice(4,8)}  ${uid16.slice(8,12)}  ${uid16.slice(12,16)}`;
-        ctx.fillStyle = "rgba(255,255,255,0.95)";
-        ctx.font = "bold 36px \"Courier New\", monospace";
-        ctx.fillText(cardNum, 50, 420);
-        ctx.shadowColor = "transparent"; 
 
-        const holderName = (await usersData.getName(senderID) || "CARD HOLDER").toUpperCase();
-        const now = new Date();
-        const expMM = String(now.getMonth() + 1).padStart(2, "0");
-        const expYY = String(now.getFullYear() + 4).slice(-2);
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
+        ctx.font = `bold 34px "Courier New", monospace`;
+        ctx.fillText(cardNum, 48, 420);
+        ctx.restore();
 
-        ctx.fillStyle = "rgba(255,255,255,0.6)";
-        ctx.font = "14px Arial";
-        ctx.fillText("CARDHOLDER", 50, 480);
+        ctx.save();
+        ctx.strokeStyle = `${theme.accent}35`;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6, 10]);
+        ctx.beginPath();
+        ctx.moveTo(48, 442);
+        ctx.lineTo(W - 48, 442);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = `${theme.accentLight}99`;
+        ctx.font = "12px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("CARDHOLDER NAME", 52, 476);
         ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 24px Arial";
-        ctx.fillText(holderName, 50, 510);
+        ctx.font = "bold 22px Arial";
+        ctx.fillText(holderName.slice(0, 26), 52, 502);
 
-        ctx.fillStyle = "rgba(255,255,255,0.6)";
-        ctx.font = "14px Arial";
-        ctx.fillText("VALID THRU", 380, 480);
+        ctx.fillStyle = `${theme.accentLight}99`;
+        ctx.font = "12px Arial";
+        ctx.fillText("VALID THRU", 400, 476);
         ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 24px Arial";
-        ctx.fillText(`${expMM}/${expYY}`, 380, 510);
+        ctx.font = "bold 22px Arial";
+        ctx.fillText(`${expMM} / ${expYY}`, 400, 502);
+
+        ctx.fillStyle = `${theme.accentLight}99`;
+        ctx.font = "12px Arial";
+        ctx.fillText("CVV", 560, 476);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 22px Arial";
+        ctx.fillText("•••", 560, 502);
+
+        ctx.save();
+        ctx.globalAlpha = 0.18;
+        ctx.fillStyle = theme.accentLight;
+        ctx.beginPath();
+        ctx.arc(W - 110, H - 70, 42, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(W - 68, H - 70, 42, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.globalAlpha = 0.55;
+        ctx.strokeStyle = theme.accentLight;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(W - 110, H - 70, 42, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(W - 68, H - 70, 42, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
 
         const outPath = path.join(__dirname, "cache", `bank_visa_${senderID}.png`);
         await fs.ensureDir(path.dirname(outPath));
