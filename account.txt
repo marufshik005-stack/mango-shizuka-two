@@ -1,7 +1,7 @@
 [
   {
     "domain": ".facebook.com",
-    "expirationDate": 1810372396.643661,
+    "expirationDate": 1810450433.603979,
     "hostOnly": false,
     "httpOnly": true,
     "name": "sb",
@@ -78,7 +78,7 @@
   },
   {
     "domain": ".facebook.com",
-    "expirationDate": 1807348399.007894,
+    "expirationDate": 1807426436.207498,
     "hostOnly": false,
     "httpOnly": false,
     "name": "c_user",
@@ -91,7 +91,7 @@
   },
   {
     "domain": ".facebook.com",
-    "expirationDate": 1783588399.008212,
+    "expirationDate": 1783666436.207678,
     "hostOnly": false,
     "httpOnly": true,
     "name": "fr",
@@ -100,11 +100,11 @@
     "secure": true,
     "session": false,
     "storeId": "0",
-    "value": "1BkLjE7npu9jmf9sz.AWfbXjd7X9ughOBoZa5ukmOPfd9QyV6_44RP3O0AXP8KahGjc_A.Bp2L8v..AAA.0.0.Bp2L8v.AWdsFjNMDG94ZKrsM5S6-d5Fgr8"
+    "value": "1KKB9U6Tk8xvtg0rY.AWee1Xkn_FKYd3fQ2wZIsXthD0D6VfoQvUSfbkkw-o8aUDB3xnk.Bp2fAF..AAA.0.0.Bp2fAF.AWdqMK32UFkBp7Ze-JuL1uhoWsA"
   },
   {
     "domain": ".facebook.com",
-    "expirationDate": 1807348399.008416,
+    "expirationDate": 1807426436.207818,
     "hostOnly": false,
     "httpOnly": true,
     "name": "xs",
@@ -113,11 +113,23 @@
     "secure": true,
     "session": false,
     "storeId": "0",
-    "value": "26%3ANxk9vYy2EfO6pw%3A2%3A1775812395%3A-1%3A-1%3A%3AAcwdqAiZrGf9sfTI6Z9PwTVQY9ussrdPwG8JOJ-xnw"
+    "value": "14%3Az4EWHYDtOk8Feg%3A2%3A1775890432%3A-1%3A-1%3A%3AAcziappy2OOK1oxEfWrZCo4QPaLOL9VRj8L6zlmeBw"
   },
   {
     "domain": ".facebook.com",
-    "expirationDate": 1776417202,
+    "hostOnly": false,
+    "httpOnly": false,
+    "name": "presence",
+    "path": "/",
+    "sameSite": "unspecified",
+    "secure": true,
+    "session": true,
+    "storeId": "0",
+    "value": "C%7B%22t3%22%3A%5B%5D%2C%22utc3%22%3A1775890439165%2C%22v%22%3A1%7D"
+  },
+  {
+    "domain": ".facebook.com",
+    "expirationDate": 1776495240,
     "hostOnly": false,
     "httpOnly": false,
     "name": "wd",
@@ -126,6 +138,6 @@
     "secure": true,
     "session": false,
     "storeId": "0",
-    "value": "1335x607"
+    "value": "1365x607"
   }
 ]
