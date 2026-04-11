@@ -1,0 +1,73 @@
+🔧 Applying emergency fixes for ws3-fca stack overflow...
+✅ Emergency stack overflow fix loaded successfully
+🚀 Starting Shizuka Bot...
+🚀 Starting bot with: node Goat.js
+✅ Bot started with PID: 812
+🌸 Starting dashboard server...
+✅ Emergency fix hooks installed
+🌸 Shizuka Dashboard is running on port 5000
+🚀 Access your dashboard at: http://localhost:5000
+🤖 Bot management: Start, Stop, Restart functionality enabled
+🍪 Cookie management: Upload and manage Facebook cookies
+🌍 Server bound to 0.0.0.0:5000 for Render compatibility
+🚀 [MEMORY] Applying memory optimizations...
+🔧 [MEMORY] Global structures optimized
+🔧 [MEMORY] Data loading optimized
+🔧 [MEMORY] Garbage collection optimized
+🔧 [MEMORY] Memory leak prevention activated
+✅ [MEMORY] Memory optimizations applied successfully
+📊 [MEMORY] Memory monitoring started
+✅ [MEMORY] Memory optimizer loaded successfully
+✅ [GOAT.JS] Memory optimizer loaded successfully
+🔧 Applying emergency fixes for ws3-fca stack overflow...
+✅ [GOAT.JS] Emergency stack overflow fix loaded successfully
+✅ Cookie persistence patch loaded successfully!
+🔧 File watcher enhanced to prevent dashboard-triggered restarts
+]2;Goat Bot V2 - Made by NTKhang\✅ Emergency fix hooks installed
+Error: libuuid.so.1: cannot open shared object file: No such file or directory
+    at Module._extensions..node (node:internal/modules/cjs/loader:1460:18)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12)
+    at Module.require (node:internal/modules/cjs/loader:1231:19)
+    at require (node:internal/modules/helpers:177:18)
+    at Object.<anonymous> (/home/runner/workspace/node_modules/canvas/lib/bindings.js:3:18)
+    at Module._compile (node:internal/modules/cjs/loader:1364:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+    at Module.load (node:internal/modules/cjs/loader:1203:32)
+    at Module._load (node:internal/modules/cjs/loader:1019:12) {
+  code: 'ERR_DLOPEN_FAILED'
+}
+⏳ Waiting for bot initialization... (1/12)
+⏳ Waiting for bot initialization... (2/12)
+⏳ Waiting for bot initialization... (3/12)
+⏳ Waiting for bot initialization... (4/12)
+⏳ Waiting for bot initialization... (5/12)
+⏳ Waiting for bot initialization... (6/12)
+📊 [MEMORY] Usage: 49.39 MB / 512 MB
+⏳ Waiting for bot initialization... (7/12)
+⏳ Waiting for bot initialization... (8/12)
+⏳ Waiting for bot initialization... (9/12)
+⏳ Waiting for bot initialization... (10/12)
+⏳ Waiting for bot initialization... (11/12)
+⚠️ Bot initialization timeout. Dashboard running in basic mode.
+📊 [MEMORY] Usage: 49.43 MB / 512 MB
+📊 [MEMORY] Usage: 49.44 MB / 512 MB
+📊 [MEMORY] Usage: 49.44 MB / 512 MB
+📊 [MEMORY] Usage: 49.45 MB / 512 MB
+📊 [MEMORY] Usage: 49.68 MB / 512 MB
+📊 [MEMORY] Usage: 49.69 MB / 512 MB
+📊 [MEMORY] Usage: 49.69 MB / 512 MB
+📊 [MEMORY] Usage: 49.70 MB / 512 MB
+📊 [MEMORY] Usage: 49.70 MB / 512 MB
+📊 [MEMORY] Usage: 49.71 MB / 512 MB
+📊 [MEMORY] Usage: 49.71 MB / 512 MB
+📊 [MEMORY] Usage: 49.72 MB / 512 MB
+📊 [MEMORY] Usage: 49.73 MB / 512 MB
+📊 [MEMORY] Usage: 49.73 MB / 512 MB
+📊 [MEMORY] Usage: 49.74 MB / 512 MB
+📊 [MEMORY] Usage: 49.74 MB / 512 MB
+📊 [MEMORY] Usage: 49.75 MB / 512 MB
+📊 [MEMORY] Usage: 49.75 MB / 512 MB
+📊 [MEMORY] Usage: 49.76 MB / 512 MB
+📊 [MEMORY] Usage: 49.76 MB / 512 MB
+📊 [MEMORY] Usage: 49.77 MB / 512 MB
