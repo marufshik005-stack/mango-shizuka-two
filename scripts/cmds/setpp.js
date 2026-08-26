@@ -3,7 +3,7 @@ const fs = require("fs");
 
 module.exports = {
   config: {
-    name: "setavatar",
+    name: "setpp",
     version: "1.0",
     author: "zisan",
     countDown: 5,
